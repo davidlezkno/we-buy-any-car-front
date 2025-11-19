@@ -1,0 +1,891 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* OTP Loading Spinner Animation */
+@keyframes loading-spinner-line-fade {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@layer base {
+  /* Typography: Arial Rounded MT Bold for entire site */
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply text-gray-900 antialiased;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold",
+      Arial,
+      Tahoma,
+      Verdana,
+      system-ui,
+      -apple-system,
+      sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.6;
+    /* Background with gradient using WBAC color palette */
+    background: linear-gradient(135deg, #f5f5f5 0%, #fff9e6 50%, #f5f5f5 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* Improved typography for headings - Arial Rounded MT Bold with Windows fallbacks */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+
+  /* Better readability for long texts */
+  p {
+    line-height: 1.75;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+  }
+
+  /* Superscript styling */
+  sup {
+    vertical-align: super;
+    position: unset;
+  }
+
+  /* Hide spin buttons (arrows) from number inputs */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Modernized buttons: Glassmorphism style */
+  .btn {
+    @apply px-6 py-3.5 rounded-2xl font-semibold transition-all duration-500 
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Primary button: WBAC Green with soft and natural shadows */
+  .btn-primary {
+    @apply btn text-white focus:ring-primary-500;
+    background: linear-gradient(135deg, #20b24d 0%, #1a9a3e 100%);
+    box-shadow:
+      0 4px 16px 0 rgba(32, 178, 77, 0.25),
+      0 2px 8px 0 rgba(32, 178, 77, 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.5s;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #1a9a3e 0%, #158234 100%);
+    box-shadow:
+      0 6px 20px 0 rgba(32, 178, 77, 0.3),
+      0 3px 10px 0 rgba(32, 178, 77, 0.2),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px) scale(1.01);
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  /* Secondary button: Transparent glass with WBAC Green hover */
+  .btn-secondary {
+    @apply btn text-gray-700 focus:ring-primary-500;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow:
+      0 2px 8px 0 rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(32, 178, 77, 0.3);
+    color: #20b24d;
+    box-shadow:
+      0 4px 12px 0 rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    transform: translateY(-1px) scale(1.01);
+  }
+
+  /* Cards: Clean and modern style with soft shadows */
+  .card {
+    @apply rounded-3xl p-8 transition-all duration-500;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow:
+      0 4px 16px 0 rgba(0, 0, 0, 0.08),
+      0 2px 8px 0 rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Mobile: Custom padding for card */
+  @media (max-width: 767px) {
+    .card {
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+    
+    /* Mobile: Custom padding for form containers with rounded-3xl p-10 */
+    .rounded-3xl.p-10 {
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+      padding-top: 1rem !important;
+      padding-bottom: 1rem !important;
+    }
+  }
+
+  /* Card hover: soft elevation effect */
+  .card-hover {
+    @apply card hover:cursor-pointer;
+  }
+
+  .card-hover:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-2px) scale(1.005);
+    box-shadow:
+      0 8px 24px 0 rgba(0, 0, 0, 0.1),
+      0 4px 12px 0 rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    border-color: rgba(255, 255, 255, 1);
+  }
+
+  /* Inputs: More pronounced Apple-style Glassmorphism */
+  .input-field {
+    @apply w-full px-5 py-4 rounded-2xl border 
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-100 
+           outline-none transition-all duration-500;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow:
+      0 2px 8px 0 rgba(0, 0, 0, 0.05),
+      0 1px 4px 0 rgba(0, 0, 0, 0.03),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    color: rgb(17, 24, 39);
+  }
+
+  .input-field::placeholder {
+    color: rgb(156, 163, 175);
+    font-weight: 400;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+  }
+
+  .input-field:focus {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(32, 178, 77, 0.5) !important;
+    box-shadow:
+      0 0 0 3px rgba(32, 178, 77, 0.12),
+      0 4px 12px 0 rgba(0, 0, 0, 0.08),
+      0 2px 6px 0 rgba(32, 178, 77, 0.08),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+  }
+
+  .input-field:hover:not(:focus) {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(255, 255, 255, 1) !important;
+    box-shadow:
+      0 4px 12px 0 rgba(0, 0, 0, 0.06),
+      0 1px 4px 0 rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+  }
+
+  /* Select field: same improved glass style */
+  .select-field {
+    @apply w-full px-5 rounded-2xl border 
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-100 
+           outline-none transition-all duration-500 appearance-none cursor-pointer;
+    font-size: 18px;
+    font-weight: 600;
+    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    font-family:
+      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow:
+      0 4px 20px 0 rgba(31, 38, 135, 0.08),
+      0 2px 8px 0 rgba(31, 38, 135, 0.04),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    color: rgb(17, 24, 39);
+    box-sizing: border-box;
+  }
+
+  /* Mobile: height 46px when not selected, 50px when selected */
+  @media (max-width: 767px) {
+    .select-field {
+      height: 46px !important;
+      min-height: 46px !important;
+      max-height: 46px !important;
+      padding: 0.625rem 1.25rem !important;
+      line-height: 1.5 !important;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .select-field {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+  }
+
+  .select-field:focus {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(32, 178, 77, 0.5) !important;
+    box-shadow:
+      0 0 0 3px rgba(32, 178, 77, 0.12),
+      0 4px 12px 0 rgba(0, 0, 0, 0.08),
+      0 2px 6px 0 rgba(32, 178, 77, 0.08),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+  }
+
+  /* Mobile: height 50px when has a value selected */
+  @media (max-width: 767px) {
+    .select-field.select-has-value {
+      height: 50px !important;
+      min-height: 50px !important;
+      max-height: 50px !important;
+    }
+    
+    /* Specific height for plate state select in mobile */
+    #homepage-plate-state-select {
+      height: 60px !important;
+      min-height: 60px !important;
+      max-height: 60px !important;
+    }
+  }
+
+  .select-field:hover:not(:focus):not(:disabled) {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(255, 255, 255, 1) !important;
+    box-shadow:
+      0 4px 12px 0 rgba(0, 0, 0, 0.06),
+      0 1px 4px 0 rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 0 rgba(255, 255, 255, 1);
+  }
+
+  .select-field:disabled {
+    background: rgba(243, 244, 246, 0.6) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-color: rgba(209, 213, 219, 0.8) !important;
+    color: rgb(156, 163, 175) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    box-shadow:
+      0 2px 8px 0 rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .select-field option {
+    background: white;
+    color: rgb(17, 24, 39);
+    padding: 8px;
+  }
+
+  /* Labels: modern design with better hierarchy */
+  .label {
+    @apply block text-sm font-bold text-gray-800 mb-3;
+    letter-spacing: 0.02em;
+    font-size: 0.75rem;
+    opacity: 0.9;
+  }
+
+  .error-message {
+    @apply text-red-500 text-sm mt-2 flex items-center gap-1.5;
+  }
+
+  /* Section container: more generous padding */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Mobile: reduced padding */
+  @media (max-width: 639px) {
+    .section-container {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .section-container {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-container {
+      padding: 1rem;
+    }
+  }
+
+  /* Brand gradient: WBAC Green (#20B24D) with subtle effect */
+  .gradient-bg {
+    background: linear-gradient(135deg, #20b24d 0%, #1a9a3e 50%, #20b24d 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
+    position: relative;
+    overflow: hidden;
+    display: none;
+  }
+
+  .gradient-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(
+        circle at 30% 50%,
+        rgba(255, 255, 255, 0.15),
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 70% 80%,
+        rgba(255, 255, 255, 0.1),
+        transparent 50%
+      );
+    pointer-events: none;
+  }
+
+  @keyframes gradientShift {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Glass effect: clean and modern style with soft shadows */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 4px 16px 0 rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+@layer utilities {
+  .rounded {
+    border-radius: 8px;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  .animation-delay-800 {
+    animation-delay: 0.8s;
+  }
+
+  /* Shimmer animation for inputs with glass effect */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(32, 178, 77, 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse animation for completed numbers */
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 12px 48px 0 rgba(34, 197, 94, 0.6),
+      0 6px 24px 0 rgba(34, 197, 94, 0.5),
+      0 0 0 4px rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 12px 48px 0 rgba(34, 197, 94, 0.8),
+      0 6px 24px 0 rgba(34, 197, 94, 0.7),
+      0 0 0 8px rgba(34, 197, 94, 0.4);
+  }
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (max-width: 1024px) {
+  /* Tablets and mobile */
+  .container-cards-info {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+}
+
+#widget-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#widget-wrapper div {
+  align-items: center;
+}
+
+#logo-footer {
+  max-width: 165px;
+}
+
+#top-logo-footer {
+  padding: 8px;
+}
+
+/* TrustBox widget styles */
+.trustpilot-widget {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-height: 300px !important;
+}
+
+.trustpilot-widget iframe {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-height: 300px !important;
+  border: none !important;
+}
+
+#wrapper-right {
+  display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  min-height: 300px !important;
+}
+
+/* Hide wrapper-right in mobile */
+@media (max-width: 767px) {
+  #wrapper-right {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  .trustpilot-widget #wrapper-right {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+}
+
+/* Trustpilot Widget Visibility Fixes */
+#tp-widget-wrapper,
+.tp-widget-wrapper {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-height: 180px !important;
+  position: relative !important;
+}
+
+.trustpilot-widget #tp-widget-wrapper,
+.trustpilot-widget .tp-widget-wrapper {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-height: 180px !important;
+}
+
+.trustpilot-widget .wrapper-left,
+.trustpilot-widget #wrapper-left,
+.trustpilot-widget .wrapper-right,
+.trustpilot-widget #wrapper-right {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.trustpilot-widget #tp-widget-reviews-wrapper,
+.trustpilot-widget .tp-widget-reviews-wrapper,
+.trustpilot-widget #tp-widget-reviews,
+.trustpilot-widget .tp-widget-reviews {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.trustpilot-widget {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-height: 180px !important;
+}
+
+.trustpilot-widget iframe {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 180px !important;
+  min-height: 180px !important;
+  max-height: 180px !important;
+  border: none !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Mobile Footer Buttons */
+.box-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Only apply these styles to .black.box inside the footer container */
+#mobile-footer-buttons-div .black.box,
+.box-container .black.box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+#mobile-footer-buttons-div .black.box:hover,
+.box-container .black.box:hover {
+  background-color: #1a1a1a;
+}
+
+#mobile-footer-buttons-div .black.box::after,
+.box-container .black.box::after {
+  content: "→";
+  font-size: 1.25rem;
+  margin-left: auto;
+}
+
+.home-only {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Mobile Branch Toggle */
+#mobile-branch-toggle {
+  display: flex;
+  gap: 0;
+  background-color: #20B24D;
+  padding: 0;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: none;
+  position: relative;
+}
+
+.toggle-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 10px;
+  border-radius: 0;
+  background-color: #20B24D;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  position: relative;
+}
+
+.toggle-button:first-child {
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+}
+
+.toggle-button:last-child {
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+.toggle-button:hover {
+  opacity: 0.9;
+}
+
+.toggle-button.is-active {
+  background-color: #ffffff;
+  color: #20B24D;
+  border: 2px solid #20B24D;
+  box-shadow: none;
+  z-index: 2;
+}
+
+.toggle-button.is-active:first-child {
+  border-right: 2px solid #20B24D;
+}
+
+.toggle-button.is-active:last-child {
+  border-left: 2px solid #20B24D;
+}
+
+.toggle-button:not(.is-active) {
+  background-color: #20B24D;
+  color: #ffffff;
+  border: 2px solid transparent;
+}
+
+.toggle-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+}
+
+.toggle-button.is-active svg {
+  fill: #20B24D;
+}
+
+.toggle-button:not(.is-active) svg {
+  fill: #ffffff;
+}
+
+.toggle-radio {
+  display: none;
+}
+
+/* Trustpilot Widget Container Styles */
+.trustpilot-container {
+  background-color: #fff !important;
+  -webkit-border-radius: 5px !important;
+  -moz-border-radius: 5px !important;
+  -ms-border-radius: 5px !important;
+  border-radius: 5px !important;
+  width: 170px !important;
+  height: 100px !important;
+  margin-left: 23px !important;
+  padding-left: 5px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Step Header */
+.step-header {
+  margin-bottom: 1rem;
+}
+
+.step-header .form-text.countable {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+}
+
+/* Cars Purchased Badge */
+#logo {
+  position: relative;
+}
+
+#cars-purchased {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  position: absolute;
+  left: -25px;
+  top: 160px;
+  width: 221px;
+  height: 123px;
+  background-image: url(https://www.webuyanycarusa.com/content/Images/yellow-car.svg);
+  background-size: 221px 123px;
+  transform: rotate(-10deg);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+#cars-purchased span {
+  display: block;
+  font-size: 20px;
+  font-weight: normal;
+  color: black;
+  max-width: 200px;
+  text-align: center;
+  transform: translate(-16px, -12px);
+}
+
+#cars-purchased span .big-number {
+  font-size: 27px;
+  font-weight: 600;
+  transform: translate(-8px, 7px);
+}
+
+/* Calendar container - Remove margin and padding top on mobile */
+@media (max-width: 767px) {
+  .calendar-container-mobile {
+    margin-top: 10px !important;
+    padding-top: 15px !important;
+  }
+  
+  .calendar-container-mobile > div:first-child {
+    margin-top: 0 !important;
+  }
+
+  #choose-where-to-sell-header{
+    margin-bottom: 0px!important;
+  }
+
+  #mobile-branch-toggle{
+    margin-top: 5px!important;
+  }
+
+}
+
