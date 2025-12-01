@@ -1,38 +1,19 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Car } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getVehicleImage } from "../../services/api";
 import { useLocation } from "react-router-dom";
 
-const VehiclePreview = ({ vehicle, loading = false }) => {
+const VehiclePreview = ({ vehicle, loading = false, imageUrl = null }) => {
   const location = useLocation();
   // Check if we're on step 2 (Series & Body) - URL is /valuation/details
-  const isStep2 = location.pathname === "/valuation/details";
-  const [imageUrl, setImageUrl] = useState(null);
+  const isStep2 = location.pathname === "/valuation/details";  
   const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
-    if (vehicle?.make && vehicle?.model && vehicle?.year) {
+    if(imageUrl !== ""){
       setImageLoading(true);
-      setImageUrl(null); // Reset image when data changes
-      getVehicleImage(vehicle.make, vehicle.model, vehicle.year)
-        .then((url) => {
-          setImageUrl(url);
-          setImageLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error loading vehicle image:", error);
-          setImageLoading(false);
-          // Use default image if error occurs
-          const basePath = import.meta.env.BASE_URL || "/";
-          setImageUrl(`${basePath}vehicles/default-car.jpg`);
-        });
-    } else {
-      // If no vehicle data, clear image
-      setImageUrl(null);
-      setImageLoading(false);
     }
-  }, [vehicle?.make, vehicle?.model, vehicle?.year]);
+  }, [imageUrl,loading]);
 
   // Only show waiting message if we don't have the minimum required vehicle data
   if (!vehicle || !vehicle.year || !vehicle.make || !vehicle.model) {

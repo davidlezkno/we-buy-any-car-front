@@ -13,8 +13,8 @@ const WhySellSection = () => (
         </span>
       </h2>
       <div className="max-w-4xl mx-auto space-y-6">
-        {WHY_SELL_POINTS.map(({ title, description }) => (
-          <div key={title} className="flex items-start gap-4">
+        {WHY_SELL_POINTS.map(({ title, description }, index) => (
+          <div key={title + "-" + index} className="flex items-start gap-4">
             <span className="font-bold text-gray-900 text-lg">{title}</span>
             <span className="text-gray-700">{description}</span>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -8,13 +8,11 @@ import {
   getVehicleMakes,
   getModelsByMake,
   getVehicleYears,
-  getVehicleValuation,
   getComponentList,
   getFaultTypeList,
 } from "../services/api";
 import {
   trackValuationStep,
-  trackValuationComplete,
   trackAppointmentConfirm,
   trackFormSubmit,
 } from "../utils/tracking";
@@ -27,43 +25,23 @@ import CalendarScheduler from "../components/UI/CalendarScheduler";
 import AppointmentModal from "../components/UI/AppointmentModal";
 import OTPModal from "../components/UI/OTPModal";
 import ValuationTabs from "../components/Home/ValuationTabs";
+import { CustomerDetailJourney, GetCustomerJourney, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
+import { saveValuationVehicle } from "../services/valuationService";
+import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
+import { cleanObject, formatPhone, formatUSD } from "../utils/helpers";
+import { createAppointment } from "../services/appointmentService";
 
-/**
- * MakeModelFlow Component - Vehicle Valuation and Appointment Booking Flow
- *
- * ROUTING IMPLEMENTATION:
- * This component implements dynamic URL routing for the valuation flow to enable:
- * 1. Direct URL access - Users can bookmark or share specific steps
- * 2. Browser history support - Back/forward buttons work correctly
- * 3. Google Tag Manager tracking - URL changes are automatically detected by GTM
- * 4. State persistence - Vehicle data is stored in context and restored on direct access
- *
- * URL Structure:
- * - /valuation → Step 1 (Vehicle Information - Year, Make, Model)
- * - /valuation/details → Step 2 (Series & Body)
- * - /valuation/condition → Step 3 (Vehicle Condition)
- * - /valuation/appointment → Step 4 (Appointment Scheduling)
- * - /valuation/confirmation → Step 5 (Confirmation - handled by separate component)
- *
- * Step Mapping:
- * - Step 1: Vehicle Info (Year, Make, Model) - /valuation
- * - Step 2: Series & Body - /valuation/details
- * - Step 3: Vehicle Condition - /valuation/condition
- * - Step 4: Appointment Scheduling - /valuation/appointment
- *
- * State Management:
- * - Vehicle data is stored in AppContext and persists across navigation
- * - Step state is derived from URL path and vehicle data availability
- * - Direct URL access restores the correct step based on stored vehicle data
- *
- * Google Tag Manager:
- * - React Router's BrowserRouter uses History API which GTM automatically tracks
- * - URL changes trigger GTM's historyChange event
- * - No additional GTM configuration needed for URL tracking
- */
 const MakeModelFlow = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [listSeries, setListSeries] = useState([]);
+  const [listBodyTypes, setListBodyTypes] = useState([]);
+  const [imageSelected, setImageSelected] = useState("");
+  const [customerJourneyId, setCustomerJourneyId] = useState("");
+  const [branchesData, setBranchesData] = useState([]);
+  const [branchesHours, setBranchesHours] = useState([]);
+  const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
+ 
   const {
     updateVehicleData,
     vehicleData,
@@ -72,6 +50,29 @@ const MakeModelFlow = () => {
     userInfo,
     resetData,
   } = useApp();
+
+  useEffect(() => {
+    const customerJourneyId = new URLSearchParams(window.location.search).get("uid") || localStorage.getItem("customerJourneyId");
+    setCustomerJourneyId(customerJourneyId);
+    if(!customerJourneyId){
+      navigate("/");
+    }else{
+      GetCustomerJourney(customerJourneyId).then(customerJourney => {
+        if(customerJourney){
+          const { year, make, model } = customerJourney;
+          getSeries(year,model,make).then(series => {
+            setListSeries(series);
+            setImageSelected(series[0].imageUrl);
+          }).catch(error => {
+            console.error("Error getting series:", error);
+          });
+        }
+      }).catch(error => {
+        console.error("Error getting customer journey:", error);
+        navigate("/");
+      });
+    }
+  }, [ navigate ]);
 
   // Determine initial step based on URL path and vehicle data
   // This allows direct URL access and proper state restoration
@@ -106,11 +107,12 @@ const MakeModelFlow = () => {
   };
 
   const [step, setStep] = useState(getInitialStepFromUrl);
-
+  
   // Sync step with URL when location changes (for direct URL access)
   // This allows users to refresh or directly access URLs and restore the correct step
   // Also tracks page views for GTM and GA4
   useEffect(() => {
+
     const path = location.pathname;
     let newStep;
 
@@ -155,11 +157,12 @@ const MakeModelFlow = () => {
   const updateStepAndNavigate = (newStep) => {
     // Map step to URL path - each step has a distinct URL
     const stepPaths = {
-      1: "/valuation",
-      2: "/valuation/details",
-      3: "/valuation/condition",
-      4: "/valuation/appointment",
+      1: `/valuation?uid=${customerJourneyId}`,
+      2: `/valuation/details?uid=${customerJourneyId}`,
+      3: `/valuation/condition?uid=${customerJourneyId}`,
+      4: `/valuation/appointment?uid=${customerJourneyId}`,
     };
+
 
     const targetPath = stepPaths[newStep] || "/valuation";
 
@@ -318,15 +321,19 @@ const MakeModelFlow = () => {
   const canAddDamage = damageZone && damageComponent && damageType;
 
   useEffect(() => {
-    // Load makes and years on mount
-    const loadData = async () => {
-      const makesData = await getVehicleMakes();
-      const yearsData = getVehicleYears();
-      setMakes(makesData);
-      setYears(yearsData);
-    };
-    loadData();
+    if(years.length === 0){
+      getVehicleYears().then(yearsData => {
+        setYears(yearsData.map(year => year.toString()));
+      }).catch(error => {
+        console.error("Error fetching years:", error);
+      });
+    }
   }, []);
+
+  const loadMakes = async (year) => {
+    const makesData = await getVehicleMakes(year);
+    setMakes(makesData);
+  };
 
   // Prefill fields and load models if context has data (from HomePage)
   useEffect(() => {
@@ -336,7 +343,7 @@ const MakeModelFlow = () => {
       const loadModels = async () => {
         setLoading(true);
         try {
-          const modelsData = await getModelsByMake(vehicleData.make);
+          const modelsData = await getModelsByMake(vehicleData.year,vehicleData.make);
           setModels(modelsData);
         } catch (error) {
           console.error("Error loading models:", error);
@@ -385,35 +392,36 @@ const MakeModelFlow = () => {
 
   // Load valuation when entering step 4
   useEffect(() => {
-    if (step === 4 && vehicleData) {
-      const loadValuation = async () => {
-        setLoadingValuation(true);
-        try {
-          const valuationData = await getVehicleValuation(
-            vehicleData,
-            userInfo,
-          );
-          setValuation(valuationData);
+    // if (step === 4 && vehicleData) {
+    //   const loadValuation = async () => {
+    //     setLoadingValuation(true);
+    //     try {
+    //       const valuationData = await getVehicleValuation(
+    //         vehicleData,
+    //         userInfo,
+    //       );
 
-          // Track valuation completion for analytics
-          if (valuationData?.valuation) {
-            trackValuationComplete({
-              valuation: valuationData.valuation,
-              year: vehicleData.year,
-              make: vehicleData.make,
-              model: vehicleData.model,
-              odometer: vehicleData.odometer,
-            });
-          }
-        } catch (error) {
-          // Error loading valuation - log for debugging but don't disrupt UX
-          console.error("Error loading valuation:", error);
-        } finally {
-          setLoadingValuation(false);
-        }
-      };
-      loadValuation();
-    }
+    //       // setValuation(valuationData);
+
+    //       // Track valuation completion for analytics
+    //       if (valuationData?.valuation) {
+    //         trackValuationComplete({
+    //           valuation: valuationData.valuation,
+    //           year: vehicleData.year,
+    //           make: vehicleData.make,
+    //           model: vehicleData.model,
+    //           odometer: vehicleData.odometer,
+    //         });
+    //       }
+    //     } catch (error) {
+    //       // Error loading valuation - log for debugging but don't disrupt UX
+    //       console.error("Error loading valuation:", error);
+    //     } finally {
+    //       setLoadingValuation(false);
+    //     }
+    //   };
+    //   loadValuation();
+    // }
   }, [step, vehicleData, userInfo]);
 
   // Initialize Trustpilot widget when step 4 is shown
@@ -571,7 +579,7 @@ const MakeModelFlow = () => {
         // Reset model when make changes
         setValue("model", "");
         try {
-          const modelsData = await getModelsByMake(watchMake);
+          const modelsData = await getModelsByMake(vehicleData.year,watchMake);
           setModels(modelsData);
         } catch (error) {
           console.error("Error loading models:", error);
@@ -597,6 +605,7 @@ const MakeModelFlow = () => {
       model: data.model,
     });
 
+    
     // Track form submission for analytics
     trackFormSubmit("vehicle_info", {
       vehicle_year: data.year,
@@ -609,21 +618,26 @@ const MakeModelFlow = () => {
   };
 
   const handleSeriesBodySubmit = (data) => {
-    // Save series and bodyType, keeping data from step 1
-    updateVehicleData({
-      ...vehicleData,
-      series: data.series || null,
-      bodyType: data.bodyType || null,
-    });
-
+    
     // Track form submission for analytics
     trackFormSubmit("series_body", {
       vehicle_series: data.series || null,
       vehicle_body_type: data.bodyType || null,
     });
 
+    CustomerDetailJourney({
+      "series": data.series,
+      "bodyStyle": data.bodyType,
+    }, customerJourneyId).then(response => {
+      const cleanResponse = cleanObject(response);
+      updateVehicleData({...vehicleData, ...cleanResponse});  
+      updateStepAndNavigate(3);
+    }).catch(error => {
+      console.error("Error updating customer journey:", error);
+    });
+
     // Navigate to step 3 (Vehicle Condition) - URL changes to /valuation/condition
-    updateStepAndNavigate(3);
+    
   };
 
   // Handle adding damage
@@ -675,18 +689,7 @@ const MakeModelFlow = () => {
       setShowAdditionalQuestions(true);
     } else {
       // If "Yes", advance directly to step 4
-      updateVehicleData({
-        ...vehicleData,
-        runsAndDrives: data.runsAndDrives,
-        hasIssues: data.hasIssues,
-        hasAccident: data.hasAccident,
-        hasClearTitle: data.hasClearTitle,
-        odometer: data.odometer,
-        zipCode: data.zipCode,
-        email: data.email,
-        phone: data.phone || null,
-        receiveSMS: data.receiveSMS || false,
-      });
+      
       updateUserInfo({
         zipCode: data.zipCode,
         email: data.email,
@@ -702,10 +705,74 @@ const MakeModelFlow = () => {
         has_clear_title: data.hasClearTitle,
         odometer: data.odometer,
       });
+      
+      getBranches(data.zipCode, 1, "Physical").then(branches => {
+        sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
+        setBranchesData(branches.branchLocations);
+      }).catch(error => {
+        console.error("Error getting branches:", error);
+      });
 
+      // await getValuationVehicle(vehicleData.customerVehicleId).then(valuationVehicle => {
+      //   console.log("-----------------valuationVehicle--------------------------------", valuationVehicle);
+      // });
+      
       // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
       updateStepAndNavigate(4);
     }
+
+    UpdateCustomerJourney({
+      "mileage": data.odometer,
+      "zipCode": data.zipCode,
+      "email": data.email,
+      "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
+      "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
+      "hasDamage": data.hasIssues === "Yes" ? true : false,
+      "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
+      "optionalPhoneNumber": formatPhone(data.phone),
+      "customerHasOptedIntoSmsMessages": data.receiveSMS,
+      "captchaWasDisplayed": data.captchaMode
+    }, customerJourneyId).then(response => {
+      const cleanData = cleanObject(response);
+      getBranchesByCustomerVehicle(data.zipCode, response.customerVehicleId).then(branchesHours => {
+        sessionStorage.setItem("branchesHours", JSON.stringify(branchesHours));
+        setBranchesHours(branchesHours);
+      }).catch(error => {
+        console.error("Error getting branches:", error);
+      });
+      
+      updateVehicleData({
+        ...vehicleData,
+        ...cleanData
+      });
+
+      saveValuationVehicle({
+        "cvid":cleanData.customerVehicleId,
+        "mileage": data.odometer,
+        "zipCode": data.zipCode,
+        "email": data.email,
+        "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
+        "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
+        "hasDamage": data.hasIssues === "Yes" ? true : false,
+        "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
+        "optionalPhoneNumber": formatPhone(data.phone),
+        "customerJourneyId": customerJourneyId,
+        "customerHasOptedIntoSmsMessages": data.receiveSMS,
+        "captchaMode": "true"
+      }).then(response => {
+        setLoadingValuation(false);
+        setValuation({formattedValue:formatUSD(response.valuationAmount)});
+
+
+      }).catch(error => {
+        console.error("Error saving valuation vehicle:", error);
+      });
+
+
+    }).catch(error => {
+      console.error("Error updating customer journey:", error);
+    });
+    sessionStorage.setItem("vehicleData", JSON.stringify(vehicleData));
   };
 
   // Handler for submitting additional questions
@@ -818,17 +885,24 @@ const MakeModelFlow = () => {
       reported_accident: formData.reportedAccident,
       damages_count: damageList.length,
     });
-
     // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
     updateStepAndNavigate(4);
   };
 
   const handleSlotClick = (slotData) => {
+    const brchHours = branchesHours.length > 0 ? branchesHours : JSON.parse(sessionStorage.getItem("branchesHours"));
+    const brnc = brchHours.physical.find(branch => branch.branchId === slotData.locationId);
+    const timeSlot = brnc.timeSlots[`${slotData.date}T00:00:00`];
+    setBranchesHoursSelected(timeSlot ? timeSlot : null);
     setSelectedSlot(slotData);
     setIsModalOpen(true);
   };
 
   const handleAppointmentConfirm = (appointmentData) => {
+    
+    console.log("---- appointmentData ---", appointmentData);
+    console.log("---- VEHICLE DATA ---", vehicleData);
+    
     setSelectedAppointment(appointmentData);
     setIsModalOpen(false);
     setSelectedSlot(null);
@@ -839,7 +913,7 @@ const MakeModelFlow = () => {
     // Track appointment confirmation for analytics
     trackAppointmentConfirm({
       date: appointmentData.date,
-      time: appointmentData.time || appointmentData.specificTime,
+      time: appointmentData.time || appointmentData.specificTime?.timeSlot24Hour,
       location: appointmentData.location,
       locationId: appointmentData.locationId,
     });
@@ -850,6 +924,38 @@ const MakeModelFlow = () => {
       appointment_time: appointmentData.time,
       appointment_location: appointmentData.location,
     });
+
+
+    
+
+    
+    const branchSelect = branchesData.find(branch => branch.branchId === appointmentData.locationId);
+    createAppointment({
+      "customerVehicleId": vehicleData.customerVehicleId,
+      "branchId": appointmentData.locationId,
+      "date": appointmentData.date,
+      "timeSlotId": appointmentData.specificTime.timeSlotId,
+      "customerPhoneNumber": formatPhone(appointmentData.contactInfo.telephone),
+      "customerFirstName": appointmentData.contactInfo.firstName,
+      "customerLastName": appointmentData.contactInfo.lastName,
+      "email": vehicleData.email,
+      "address1": branchSelect.address1,
+      "address2": branchSelect.address2,
+      "city": appointmentData.location,
+      "model": vehicleData.model,
+      "visitId": vehicleData.vid,
+      "otpCode": "true"
+    }).then(response => {
+      console.log("---- createAppointment response ---", response);
+    }).catch(error => {
+      alert("Error creating appointment");
+      console.error("Error creating appointment:", error);
+    });
+      
+    
+
+    
+
   };
 
   const handleFinalSubmit = () => {
@@ -859,7 +965,7 @@ const MakeModelFlow = () => {
       // Track appointment confirmation for analytics
       trackAppointmentConfirm({
         date: selectedAppointment.date,
-        time: selectedAppointment.time || selectedAppointment.specificTime,
+        time: selectedAppointment.time || selectedAppointment.specificTime?.timeSlot24Hour,
         location: selectedAppointment.location,
         locationId: selectedAppointment.locationId,
       });
@@ -993,7 +1099,7 @@ const MakeModelFlow = () => {
                     className="space-y-7"
                   >
                     {/* If data comes from HomePage, show confirmed summary */}
-                    {hasInitialData && !showEditForm ? (
+                    {vehicleData && !showEditForm ? (
                       <>
                         <div className="mb-6 p-5 rounded-2xl border-2 border-green-200 bg-green-50">
                           <div className="flex items-center gap-3 mb-3">
@@ -1067,6 +1173,10 @@ const MakeModelFlow = () => {
                           placeholder="Select Model Year"
                           error={errors.year?.message}
                           id="year-select"
+                          onChange={(e) => {
+                            const newYear = e.target.value;
+                            loadMakes(newYear);
+                          }}
                           {...register("year", {
                             required: "Year is required",
                           })}
@@ -1179,46 +1289,28 @@ const MakeModelFlow = () => {
                     {/* Added unique IDs for automation testing */}
                     <Select
                       label="Select Series"
-                      options={[
-                        "Base",
-                        "LE",
-                        "SE",
-                        "XLE",
-                        "Limited",
-                        "Sport",
-                        "Touring",
-                        "LX",
-                        "EX",
-                        "EX-L",
-                        "Touring",
-                        "Type R",
-                        "Si",
-                        "Other",
-                      ]}
-                      placeholder="Select series"
+                      options={ listSeries[0] ? [...new Set(listSeries.map(item => (item.series)))] : [] }
+                      placeholder="Select Series"
                       error={errors.series?.message}
+                      disabled={listSeries.length === 0}
                       id="series-select"
-                      {...register("series", {
-                        required: "Series is required",
-                      })}
+                      {...register("series")}
+                      onChange={(e) => {
+                        setListBodyTypes(e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));
+                      }}
                     />
 
                     <Select
                       label="Select Body Type"
-                      options={[
-                        "Sedan",
-                        "Coupe",
-                        "Hatchback",
-                        "SUV",
-                        "Crossover",
-                        "Truck",
-                        "Van",
-                        "Wagon",
-                        "Convertible",
-                        "Other",
-                      ]}
+                      options={listBodyTypes[0] ? listBodyTypes.map(item => (item.bodystyle)) : []}
                       placeholder="Select body type"
                       error={errors.bodyType?.message}
+                      disabled={listBodyTypes.length === 0}
+                      onChange={(e) => {
+                        const newBodyType = e.target.value;
+                        setImageSelected(listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "");
+                        
+                      }}
                       id="body-type-select"
                       {...register("bodyType", {
                         required: "Body type is required",
@@ -2052,7 +2144,7 @@ const MakeModelFlow = () => {
                 </motion.div>
               </div>
             )}
-
+            
             {step === 4 && (
               <motion.div
                 initial={{ opacity: 0, x: -30, scale: 0.95 }}
@@ -2219,8 +2311,8 @@ const MakeModelFlow = () => {
                               </a>
 
                               <div id="cars-purchased">
-                              <span class="wbac-font">
-                                  <span class="big-number">430,000+</span>cars purchased
+                              <span className="wbac-font">
+                                  <span className="big-number">430,000+</span>cars purchased
                               </span>
                           </div>
                             </div>
@@ -2257,7 +2349,7 @@ const MakeModelFlow = () => {
                                 <a
                                   href="https://www.trustpilot.com/review/webuyanycarusa.com"
                                   target="_blank"
-                                  rel="noopener"
+                                  rel="noopener noreferrer"
                                 >
                                   Trustpilot
                                 </a>
@@ -2315,7 +2407,9 @@ const MakeModelFlow = () => {
                           boxSizing: "border-box",
                         }}
                       >
-                        <CalendarScheduler
+
+                        {branchesData.length > 0 && <CalendarScheduler
+                          branches={branchesData}
                           onSlotClick={handleSlotClick}
                           selectedDate={selectedAppointment?.date}
                           selectedTime={selectedAppointment?.specificTime}
@@ -2368,7 +2462,7 @@ const MakeModelFlow = () => {
                               setShowOTPModal(true);
                             }, 500);
                           }}
-                        />
+                        />}
 
                         {selectedAppointment && (
                           <motion.div
@@ -2387,7 +2481,7 @@ const MakeModelFlow = () => {
                               {selectedAppointment.dateFormatted}
                               <br />
                               <strong>Time:</strong>{" "}
-                              {selectedAppointment.specificTime ||
+                              {selectedAppointment.specificTime?.timeSlot24Hour ||
                                 selectedAppointment.time}
                               <br />
                               <strong>Contact:</strong>{" "}
@@ -2402,7 +2496,9 @@ const MakeModelFlow = () => {
                         )}
 
                         {/* Appointment Modal */}
-                        <AppointmentModal
+                        {branchesHoursSelected !== null && (<AppointmentModal 
+                          branchesHours={branchesHoursSelected}
+                          vehicleData={vehicleData}
                           isOpen={isModalOpen}
                           onClose={() => {
                             setIsModalOpen(false);
@@ -2412,18 +2508,20 @@ const MakeModelFlow = () => {
                           onConfirm={handleAppointmentConfirm}
                           initialPhone={vehicleData?.phone || userInfo?.phone || ""}
                           initialReceiveSMS={vehicleData?.receiveSMS || userInfo?.receiveSMS || false}
-                        />
+                        />)}
 
                         {/* OTP Modal for Mobile */}
                         {pendingAppointmentData && (
                           <OTPModal
                             isOpen={showOTPModal}
                             onClose={() => {
+                              console.log("---- onClose ---");
                               setShowOTPModal(false);
                               setPendingAppointmentData(null);
                             }}
                             phoneNumber={pendingAppointmentData.contactInfo?.telephone || pendingAppointmentData.phone || ""}
                             onVerify={async (otpCode) => {
+                              console.log("---- otpCode ---", otpCode);
                               // TODO: Replace with actual API call to verify OTP
                               // Simulate OTP verification
                               return new Promise((resolve, reject) => {
@@ -2440,7 +2538,7 @@ const MakeModelFlow = () => {
                                     // Track appointment confirmation for analytics
                                     trackAppointmentConfirm({
                                       date: pendingAppointmentData.date,
-                                      time: pendingAppointmentData.time || pendingAppointmentData.specificTime,
+                                      time: pendingAppointmentData.time || pendingAppointmentData.specificTime?.timeSlot24Hour,
                                       location: pendingAppointmentData.location,
                                       locationId: pendingAppointmentData.locationId,
                                     });
@@ -2462,6 +2560,7 @@ const MakeModelFlow = () => {
                               });
                             }}
                             onResendCode={async () => {
+                              console.log("---- onResendCode ---");
                               // TODO: Replace with actual API call to resend OTP
                               setIsSendingOTP(true);
                               setTimeout(() => {
@@ -2583,7 +2682,7 @@ const MakeModelFlow = () => {
           {/* Preview Section - Hidden in step 4 */}
           {step !== 4 && (
             <div>
-              <VehiclePreview vehicle={vehicleData} loading={loading} />
+              <VehiclePreview vehicle={vehicleData} loading={loading} imageUrl={imageSelected} />
             </div>
           )}
         </div>

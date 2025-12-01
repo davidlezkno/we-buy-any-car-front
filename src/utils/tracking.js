@@ -103,9 +103,9 @@ export const trackValuationStep = (step, stepName, vehicleData = {}) => {
   trackPageView(pagePath, pageTitle, {
     valuation_step: step,
     valuation_step_name: stepName,
-    vehicle_year: vehicleData.year || null,
-    vehicle_make: vehicleData.make || null,
-    vehicle_model: vehicleData.model || null,
+    vehicle_year: vehicleData?.year || null,
+    vehicle_make: vehicleData?.make || null,
+    vehicle_model: vehicleData?.model || null,
   });
 };
 

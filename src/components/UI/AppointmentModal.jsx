@@ -1,15 +1,23 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { X, ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import Button from "./Button";
 import Input from "./Input";
 import OTPModal from "./OTPModal";
+import { random3Digits } from "../../utils/helpers";
 
-const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPhone = "", initialReceiveSMS = false }) => {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1 = Select time, 2 = Contact info
-  const [selectedTime, setSelectedTime] = useState("");
+const AppointmentModal = ({ 
+  isOpen, 
+  onClose, 
+  selectedSlot, 
+  onConfirm, 
+  initialPhone = "", 
+  initialReceiveSMS = false, 
+  vehicleData, 
+  branchesHours }) => {
+  
+  const [step, setStep] = useState(1); 
+  const [selectedTime, setSelectedTime] = useState({});
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -19,7 +27,7 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
   const [errors, setErrors] = useState({});
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [isSendingOTP, setIsSendingOTP] = useState(false);
-
+  const [availableTimes, setAvailableTimes] = useState([]);
   // Function to extract only digits from phone number
   const getDigitsOnly = (phone) => {
     return phone.replace(/\D/g, "");
@@ -60,17 +68,30 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
         return prev;
       });
     }
+
+    if(branchesHours.length > 0){
+      const dataHours = {
+        Morning: [],
+        Afternoon: [],
+        Evening: [],
+      };
+      branchesHours.map(hours => {
+        const hour = parseInt(hours.timeSlot24Hour.split(':')[0], 10);
+          if(hour >= 5 && hour < 12){
+            dataHours['Morning'].push(hours);
+          }else if(hour >= 12 && hour < 19){
+            dataHours['Afternoon'].push(hours);
+          }
+          else if(hour >= 18 && hour < 24){
+            dataHours['Evening'].push(hours);
+          }
+      });
+      
+      setAvailableTimes(dataHours[selectedSlot?.time] || []);
+    }
   }, [isOpen, initialPhone]);
 
-  // Available time slots by period
-  const timeSlots = {
-    Morning: ["9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"],
-    Afternoon: ["1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"],
-    Evening: ["5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM"],
-  };
-
-  const availableTimes = timeSlots[selectedSlot?.time] || [];
-
+  
   const handleTimeSelect = (time) => {
     setSelectedTime(time);
     setStep(2);
@@ -117,7 +138,9 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
   };
 
   const handleConfirm = async () => {
+    
     if (validateForm()) {
+      
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);
       // Simulate sending OTP code (in production, this would be an API call)
@@ -143,44 +166,55 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
   const handleOTPVerify = async (otpCode) => {
     // TODO: Replace with actual API call to verify OTP
     // Simulate OTP verification
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // For demo purposes, accept any 6-digit code
-        if (otpCode.length === 6) {
-          // OTP verified successfully - confirm appointment and navigate
-          const confirmedAppointment = {
-            ...selectedSlot,
-            specificTime: selectedTime,
-            contactInfo: formData,
-          };
+    console.log("---- otpCode ---", otpCode);
+
+    console.log("---- selectedTime ---", selectedTime);
+    const confirmedAppointment = {
+      ...selectedSlot,
+      specificTime: selectedTime,
+      contactInfo: formData,
+      otpCode: otpCode,
+    };
+    onConfirm(confirmedAppointment);
+    // -- ACA SE VERIFICA EL CODIGO QUE SE ENVIA POR MENSAJE DE TEXTO --
+    // return new Promise((resolve, reject) => {
+    //   setTimeout(() => {
+    //     // For demo purposes, accept any 6-digit code
+    //     if (otpCode.length === 6) {
+    //       // OTP verified successfully - confirm appointment and navigate
+    //       const confirmedAppointment = {
+    //         ...selectedSlot,
+    //         specificTime: selectedTime?.timeSlot24Hour,
+    //         contactInfo: formData,
+    //       };
           
-          // Call onConfirm to update appointment info
-          onConfirm(confirmedAppointment);
+    //       // Call onConfirm to update appointment info
+    //       onConfirm(confirmedAppointment);
           
-          // Reset and close modals
-          setStep(1);
-          setSelectedTime("");
-          setFormData({
-            firstName: "",
-            lastName: "",
-            telephone: "",
-            receiveSMS: false,
-          });
-          setErrors({});
-          setShowOTPModal(false);
-          onClose();
+    //       // Reset and close modals
+    //       setStep(1);
+    //       setSelectedTime({});
+    //       setFormData({
+    //         firstName: "",
+    //         lastName: "",
+    //         telephone: "",
+    //         receiveSMS: false,
+    //       });
+    //       setErrors({});
+    //       setShowOTPModal(false);
+    //       onClose();
           
-          // Navigate to confirmation page immediately after OTP verification
-          setTimeout(() => {
-            navigate("/valuation/confirmation", { replace: true });
-          }, 100);
+    //       // Navigate to confirmation page immediately after OTP verification
+    //       setTimeout(() => {
+    //         navigate("/valuation/confirmation", { replace: true });
+    //       }, 100);
           
-          resolve();
-        } else {
-          reject(new Error("Invalid code. Please try again."));
-        }
-      }, 1000);
-    });
+    //       resolve();
+    //     } else {
+    //       reject(new Error("Invalid code. Please try again."));
+    //     }
+    //   }, 1000);
+    // });
   };
 
   const handleResendOTP = async () => {
@@ -203,7 +237,7 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
       setStep(2);
     } else if (step === 2) {
       setStep(1);
-      setSelectedTime("");
+      setSelectedTime({});
       setErrors({});
     } else {
       onClose();
@@ -232,7 +266,7 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" key={random3Digits()}>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -284,17 +318,17 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
                   Select a specific time for {selectedSlot.time}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {availableTimes.map((time) => (
+                  {availableTimes.map((time, index) => (
                     <button
-                      key={time}
+                      key={index}
                       onClick={() => handleTimeSelect(time)}
                       className="p-4 rounded-xl border-2 border-gray-200 hover:border-primary-600 hover:bg-primary-50 transition-all duration-200 text-left group"
-                      id={`appointment-time-slot-${time.replace(/\s+/g, "-").toLowerCase()}-button`}
+                      id={`appointment-time-slot-${time.timeSlot24Hour.replace(/\s+/g, "-").toLowerCase()}-button`}
                     >
                       <div className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-gray-400 group-hover:text-primary-600" />
                         <span className="font-semibold text-gray-900 group-hover:text-primary-700">
-                          {time}
+                          {time.timeSlot24Hour}
                         </span>
                       </div>
                     </button>
@@ -322,7 +356,7 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
                     </p>
                     <p className="font-semibold">
                       <span className="text-gray-600">Time:</span>{" "}
-                      {selectedTime || selectedSlot.specificTime || selectedSlot.time}
+                      {selectedTime?.timeSlot24Hour || selectedSlot.specificTime || selectedSlot.time}
                     </p>
                   </div>
                 </div>
@@ -463,6 +497,7 @@ const AppointmentModal = ({ isOpen, onClose, selectedSlot, onConfirm, initialPho
       <OTPModal
         isOpen={showOTPModal}
         onClose={() => {
+          console.log("---- onClose OTPModal ---");
           setShowOTPModal(false);
           setStep(2);
         }}

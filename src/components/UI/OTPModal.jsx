@@ -305,8 +305,8 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
                     data-wi-no="45153"
                     data-feature="Request New OTP"
                   >
-                    <span className="md:hidden mobile-only">Didn't receive a code? Tap here to send another.</span>
-                    <span className="hidden md:inline desktop-only">Didn't receive a code? Click here to send another.</span>
+                    <span className="md:hidden mobile-only">Didn´t receive a code? Tap here to send another.</span>
+                    <span className="hidden md:inline desktop-only">Didn´t receive a code? Click here to send another.</span>
                   </a>
                   {showResendMessage && (
                     <span className="click-message text-green-600 font-semibold block">

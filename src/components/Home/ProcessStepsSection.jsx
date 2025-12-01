@@ -88,7 +88,7 @@ const ProcessStepsSection = () => {
         {/* Desktop: Grid Layout */}
         <div className="hidden md:grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {PROCESS_STEPS.map((step, index) => (
-            <div key={step.label} className="text-center">
+            <div key={step.label + "-" + index} className="text-center">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto"
                 style={{ backgroundColor: "#000000" }}
@@ -155,7 +155,7 @@ const ProcessStepsSection = () => {
           <div className="flex justify-center gap-2 mt-6">
             {PROCESS_STEPS.map((step, index) => (
               <button
-                key={step.label}
+                key={step.label + "-" + index}
                 onClick={() => handleSlideClick(index)}
                 className={`w-2.5 h-2.5 rounded-full transition-all ${
                   activeSlide === index

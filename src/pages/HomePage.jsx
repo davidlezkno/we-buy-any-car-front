@@ -9,6 +9,7 @@ import ProcessStepsSection from "../components/Home/ProcessStepsSection";
 import DisclaimerSection from "../components/Home/DisclaimerSection";
 import VINHelpModal from "../components/UI/VINHelpModal";
 import { useApp } from "../context/AppContext";
+import { createCustomerJourney } from "../services/vehicleService";
 
 // HomePage composes the homepage journey while delegating presentation to section components.
 const HomePage = () => {
@@ -19,8 +20,20 @@ const HomePage = () => {
 
   const handleMakeModelSubmit = useCallback(
     (vehicleDetails) => {
-      updateVehicleData(vehicleDetails);
-      navigate("/valuation/details");
+
+      const { year, make, model } = vehicleDetails;
+      createCustomerJourney(year,make,model,1).then(rps => {
+        localStorage.setItem("customerJourneyId", rps.customerJourneyId);
+        updateVehicleData(vehicleDetails);
+        navigate(`/valuation/details/?uid=${rps.customerJourneyId}`);
+        // navigate(`/valuation/details`);
+      }).catch(error => {
+        navigate("/valuation/details");
+      }).catch(error => {
+        console.error("Error Create customer journey:", error);
+      });
+
+      
     },
     [navigate, updateVehicleData],
   );

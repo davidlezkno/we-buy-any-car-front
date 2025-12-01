@@ -123,7 +123,7 @@ const ReviewSlider = () => {
         >
           {REVIEW_ITEMS.map((review, index) => (
             <li
-              key={review.header}
+              key={review.header + "-" + index}
               className="tp-widget-review flex-shrink-0 w-full md:w-[calc(50%-0.5rem)]"
             >
               <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-md h-full">

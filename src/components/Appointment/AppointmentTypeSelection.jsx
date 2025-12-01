@@ -13,9 +13,9 @@ const AppointmentTypeSelection = ({ options, onSelect }) => (
     className="grid grid-cols-1 md:grid-cols-2 gap-6"
   >
     {options.map(
-      ({ id, label, description, icon: Icon, highlights, accent }) => (
+      ({ id, label, description, icon: Icon, highlights, accent }, index) => (
         <Card
-          key={id}
+          key={id + "-" + index}
           hover
           onClick={() => onSelect(id)}
           className="cursor-pointer group"
@@ -30,9 +30,9 @@ const AppointmentTypeSelection = ({ options, onSelect }) => (
             <p className="text-gray-600 mb-6">{description}</p>
             <div className="space-y-2 text-sm text-gray-600">
               {highlights.map(
-                ({ id: highlightId, icon: HighlightIcon, text }) => (
+                ({ id: highlightId, icon: HighlightIcon, text }, index) => (
                   <div
-                    key={highlightId}
+                    key={highlightId + "-" + index}
                     className="flex items-center justify-center gap-2"
                   >
                     <HighlightIcon

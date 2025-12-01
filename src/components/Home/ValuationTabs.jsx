@@ -13,6 +13,9 @@ import {
   decodeVIN,
 } from "../../services/api";
 import { US_STATES } from "../../utils/constants";
+import { createCustomerJourneyByVin } from "../../services/vehicleService";
+import { useNavigate } from "react-router-dom";
+
 
 const ValuationTabs = ({
   activeTab,
@@ -23,12 +26,13 @@ const ValuationTabs = ({
   onOpenVinHelp,
   hideHeaderAndTabs = false,
 }) => {
+  const navigate = useNavigate();
   const [makes, setMakes] = useState([]);
   const [models, setModels] = useState([]);
-  const years = useMemo(() => getVehicleYears(), []);
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedMake, setSelectedMake] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
+  const [years, setYears] = useState([]);
 
   const [vinValue, setVinValue] = useState("");
   const [vinLoading, setVinLoading] = useState(false);
@@ -38,29 +42,37 @@ const ValuationTabs = ({
   const [plateState, setPlateState] = useState("");
 
   useEffect(() => {
-    const loadMakes = async () => {
-      const makesData = await getVehicleMakes();
-      setMakes(makesData);
-    };
-    loadMakes();
+    if(years.length === 0){
+      getVehicleYears().then(yearsData => {
+        setYears(yearsData.map(year => year.toString()));
+      }).catch(error => {
+        console.error("Error fetching years:", error);
+      });
+    }
+    
   }, []);
 
-  useEffect(() => {
-    const loadModels = async () => {
-      if (!selectedMake) {
-        setModels([]);
-        return;
-      }
-      const modelsData = await getModelsByMake(selectedMake);
-      setModels(modelsData);
-    };
-    loadModels();
-  }, [selectedMake]);
+  const loadMakes = async (year) => {
+    const makesData = await getVehicleMakes(year);
+    setMakes(makesData);
+  };
+
+  const loadModels = async (make) => {
+    if(!selectedYear || !make){
+      setModels([]);
+      return;
+    }
+    const modelsData = await getModelsByMake(selectedYear,make);
+    setModels(modelsData);
+  };
 
   const handleMakeModelClick = useCallback(() => {
     if (!selectedYear || !selectedMake || !selectedModel) {
       return;
     }
+
+    //7d50abcd-ed4e-40db-a1d3-b59c58f85415
+
     onMakeModelSubmit({
       year: selectedYear,
       make: selectedMake,
@@ -72,15 +84,26 @@ const ValuationTabs = ({
     if (vinValue.length !== 17) {
       return;
     }
-    setVinLoading(true);
-    setVinError(null);
-    try {
-      const vehicleInfo = await decodeVIN(vinValue.toUpperCase());
-      onVinSubmit(vehicleInfo);
-    } catch (error) {
-      setVinError(error.message);
-      setVinLoading(false);
-    }
+
+    createCustomerJourneyByVin(vinValue).then(rps => {
+      console.log("---- rps ---", rps);
+      // localStorage.setItem("customerJourneyId", rps);
+      // navigate(`/valuation/details/?uid=${rps.customerJourneyId}`);
+      
+    }).catch(error => {
+      console.error("Error Create customer journey by vin:", error);
+    });
+
+
+    // setVinLoading(true);
+    // setVinError(null);
+    // try {
+    //   const vehicleInfo = await decodeVIN(vinValue.toUpperCase());
+    //   onVinSubmit(vehicleInfo);
+    // } catch (error) {
+    //   setVinError(error.message);
+    //   setVinLoading(false);
+    // }
   }, [onVinSubmit, vinValue]);
 
   const tabs = useMemo(
@@ -137,7 +160,11 @@ const ValuationTabs = ({
                       options={years}
                       placeholder="Select Model Year"
                       value={selectedYear}
-                      onChange={(event) => setSelectedYear(event.target.value)}
+                      onChange={(event) => {
+                        setSelectedYear(event.target.value)
+                        loadMakes(event.target.value.toString());
+                      }}
+                      disabled={years.length === 0}
                       id="homepage-year-select"
                       checkmark={
                         selectedYear ? (
@@ -219,10 +246,10 @@ const ValuationTabs = ({
                       options={makes}
                       placeholder="Select Make"
                       value={selectedMake}
-                      disabled={!selectedYear}
+                      disabled={!selectedYear || makes.length === 0}
                       onChange={(event) => {
                         setSelectedMake(event.target.value);
-                        setSelectedModel("");
+                        loadModels(event.target.value);
                       }}
                       id="homepage-make-select"
                       checkmark={
@@ -304,9 +331,11 @@ const ValuationTabs = ({
                     <Select
                       options={models}
                       placeholder="Select Model"
-                      disabled={!selectedMake}
+                      disabled={!selectedMake || models.length === 0}
                       value={selectedModel}
-                      onChange={(event) => setSelectedModel(event.target.value)}
+                      onChange={(event) => {
+                        setSelectedModel(event.target.value)
+                      }}
                       id="homepage-model-select"
                       checkmark={
                         selectedModel ? (
@@ -385,7 +414,7 @@ const ValuationTabs = ({
               />
               <div className="mt-3 text-center">
                 <button
-                  onClick={onOpenVinHelp}
+                  onClick={onOpenVinHelp(vinValue)}
                   className="text-primary-600 hover:text-primary-700 underline text-sm md:text-base font-semibold"
                   id="where-can-i-find-vin-button"
                 >

@@ -175,9 +175,9 @@ const AppointmentDetailsForm = ({
               <h3 className="text-xl font-bold text-gray-900">
                 Nearby Locations
               </h3>
-              {stores.map((store) => (
+              {stores.map((store, index) => (
                 <Card
-                  key={store.id}
+                  key={store.id + "-" + index}
                   hover
                   className={`cursor-pointer transition-all ${
                     selectedStore?.id === store.id
@@ -226,8 +226,8 @@ const AppointmentDetailsForm = ({
             Home Appointment Benefits
           </h3>
           <ul className="space-y-3">
-            {homeBenefits.map((benefit) => (
-              <li key={benefit} className="flex items-start gap-2">
+            {homeBenefits.map((benefit, index) => (
+              <li key={benefit + "-" + index} className="flex items-start gap-2">
                 <div className="bg-green-500 rounded-full p-0.5 mt-1">
                   <ArrowRight className="w-3 h-3 text-white" />
                 </div>

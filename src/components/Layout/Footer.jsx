@@ -4,92 +4,100 @@ import { useLocation } from "react-router-dom";
 const Footer = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/" || location.pathname === "";
+  const isConfirmationPage = location.pathname.includes("/confirmation") || location.pathname.includes("/valuation/confirmation");
+  
+  // Background color: gray for confirmation page, green for other pages
+  const footerBgColor = isConfirmationPage ? "#f5f5f5" : "#20B24D";
+  const footerBgColorSecondary = isConfirmationPage ? "#f5f5f5" : "#20B24D"; // For second and third containers
+  const footerTextColor = isConfirmationPage ? "#4e4e4e" : "#ffffff";
+  const footerLinkColor = isConfirmationPage ? "#4e4e4e" : "#ffffff";
+  const footerSeparatorColor = isConfirmationPage ? "#4e4e4e" : "#ffffff";
 
   return (
-    <footer className="mt-2" style={{ color: "#4e4e4e" }}>
-      <div className="py-4 hidden md:block" style={{ backgroundColor: "#f5f5f5" }}>
+    <footer className="mt-2" style={{ color: footerTextColor }}>
+      <div className="py-4 hidden md:block" style={{ backgroundColor: footerBgColor }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="hidden md:flex items-center justify-center flex-wrap gap-2">
             <a
               href="https://www.webuyanycarusa.com/our-values"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Our Values
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://webuyanycar.jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Careers
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/sell-your-car"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Sell Your Car
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/about"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               About Us
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/reviews"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Reviews
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/video"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               As Seen on TV
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/privacypolicy"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Privacy Policy
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/termsofuse"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Terms of Use
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://webuyanycarusa.com/blog"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Blog
             </a>
-            <span style={{ color: "#4e4e4e" }}>/</span>
+            <span style={{ color: footerSeparatorColor }}>/</span>
             <a
               href="https://www.webuyanycarusa.com/site_map"
               className="hover:opacity-80 transition-colors font-semibold text-sm"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Site Map
             </a>
@@ -99,7 +107,7 @@ const Footer = () => {
             <a
               href="/our-values"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Our Values
             </a>
@@ -108,49 +116,49 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Careers
             </a>
             <a
               href="/sell-your-car"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Sell Your Car
             </a>
             <a
               href="/about"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               About Us
             </a>
             <a
               href="/reviews"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Reviews
             </a>
             <a
               href="/video"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               As Seen on TV
             </a>
             <a
               href="/privacypolicy"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Privacy Policy
             </a>
             <a
               href="/termsofuse"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Terms of Use
             </a>
@@ -159,14 +167,14 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Blog
             </a>
             <a
               href="/site_map"
               className="hover:opacity-80 transition-colors font-semibold text-base py-1"
-              style={{ color: "#4e4e4e" }}
+              style={{ color: footerLinkColor }}
             >
               Site Map
             </a>
@@ -174,17 +182,17 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="py-12 hidden md:block" style={{ backgroundColor: "#f8f8f8", borderTop: "1px solid #d0d0d0" }}>
+      <div className="py-12 hidden md:block" style={{ backgroundColor: footerBgColorSecondary, borderTop: isConfirmationPage ? "1px solid #d0d0d0" : "1px solid #116a2a" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             <div>
-              <h2 className="font-bold mb-4 text-lg" style={{ color: "#4e4e4e" }}>Quick Links</h2>
-              <ul className="space-y-2" style={{ color: "#4e4e4e" }}>
+              <h2 className="font-bold mb-4 text-lg" style={{ color: footerTextColor }}>Quick Links</h2>
+              <ul className="space-y-2" style={{ color: footerTextColor }}>
                 <li>
                   <a
                     href="https://www.webuyanycarusa.com/car-valuation"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Used Car Value Calculator
                   </a>
@@ -193,7 +201,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/cash-for-cars"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Cash for Cars
                   </a>
@@ -202,7 +210,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/article/view/sell-your-car-for-the-max-price-in-philadelphia-pa"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Get Your Car&apos;s Max Value
                   </a>
@@ -211,7 +219,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/how-much-is-my-car-worth"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     How Much is My Car Worth?
                   </a>
@@ -220,7 +228,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/landing/content/5/blue-book-trade-in-prices"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Is Kelly Blue Book Accurate?
                   </a>
@@ -229,7 +237,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-your-car"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell Used Car Online
                   </a>
@@ -238,7 +246,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/used-car-values"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Online Used Car Values
                   </a>
@@ -247,7 +255,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/locations"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     We Buy Any Car Near Me
                   </a>
@@ -256,7 +264,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/video"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     We Buy Any Car TV Commercials
                   </a>
@@ -267,7 +275,7 @@ const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     We Buy Any Car<sup>®</sup> Reviews
                   </a>
@@ -276,15 +284,15 @@ const Footer = () => {
             </div>
 
             <div>
-              <h2 className="font-bold mb-4 text-lg" style={{ color: "#4e4e4e" }}>
+              <h2 className="font-bold mb-4 text-lg" style={{ color: footerTextColor }}>
                 Popular States
               </h2>
-              <ul className="space-y-2" style={{ color: "#4e4e4e" }}>
+              <ul className="space-y-2" style={{ color: footerTextColor }}>
                 <li>
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/florida-fl"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Florida
                   </a>
@@ -293,7 +301,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/georgia-ga"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Georgia
                   </a>
@@ -302,7 +310,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/illinois-il"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Illinois
                   </a>
@@ -311,7 +319,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/indiana-in"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Indiana
                   </a>
@@ -320,7 +328,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/maryland-md"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Maryland
                   </a>
@@ -329,7 +337,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/new-jersey-nj"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in New Jersey
                   </a>
@@ -338,7 +346,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/north-carolina-nc"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in North Carolina
                   </a>
@@ -347,7 +355,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/ohio-oh"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Ohio
                   </a>
@@ -356,7 +364,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/pennsylvania-pa"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Pennsylvania
                   </a>
@@ -365,7 +373,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/virginia-va"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car in Virginia
                   </a>
@@ -374,15 +382,15 @@ const Footer = () => {
             </div>
 
             <div>
-              <h2 className="font-bold mb-4 text-lg" style={{ color: "#4e4e4e" }}>
+              <h2 className="font-bold mb-4 text-lg" style={{ color: footerTextColor }}>
                 Popular Cities
               </h2>
-              <ul className="space-y-2" style={{ color: "#4e4e4e" }}>
+              <ul className="space-y-2" style={{ color: footerTextColor }}>
                 <li>
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/atlanta"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Atlanta, GA
                   </a>
@@ -391,7 +399,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/charlotte"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Charlotte, NC
                   </a>
@@ -400,7 +408,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/columbus"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Columbus, OH
                   </a>
@@ -409,7 +417,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/denver"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Denver, CO
                   </a>
@@ -418,7 +426,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/indianapolis"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Indianapolis, IN
                   </a>
@@ -427,7 +435,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/milwaukee"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Milwaukee, WI
                   </a>
@@ -436,7 +444,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/nashville"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Nashville, TN
                   </a>
@@ -445,7 +453,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/philadelphia"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Philadelphia, PA
                   </a>
@@ -454,7 +462,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/pittsburgh"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Pittsburgh, PA
                   </a>
@@ -463,7 +471,7 @@ const Footer = () => {
                   <a
                     href="https://www.webuyanycarusa.com/sell-car/washington-dc"
                     className="hover:opacity-80 transition-colors"
-                    style={{ color: "#4e4e4e" }}
+                    style={{ color: footerLinkColor }}
                   >
                     Sell My Car Washington, DC
                   </a>
@@ -477,7 +485,7 @@ const Footer = () => {
       {/* Bottom Footer */}
       <div
         className="py-8"
-        style={{ backgroundColor: "#f8f8f8", borderTop: "1px solid #d0d0d0" }}
+        style={{ backgroundColor: footerBgColorSecondary, borderTop: isConfirmationPage ? "1px solid #d0d0d0" : "1px solid #116a2a" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Mobile Footer Buttons */}
@@ -638,7 +646,7 @@ const Footer = () => {
               <div
                 id="wbac-slogan"
                 className="text-lg md:text-xl font-bold"
-                style={{ color: "#4e4e4e" }}
+                style={{ color: footerTextColor }}
               >
                 WE BUY ANY CAR<sup className="text-xs">®</sup>
               </div>
@@ -663,7 +671,7 @@ const Footer = () => {
             </div>
           </div>
 
-          <p className="text-center text-sm mt-8" style={{ color: "#4e4e4e" }}>
+          <p className="text-center text-sm mt-8" style={{ color: footerTextColor }}>
             © CarGroup Holdings, LLC
           </p>
         </div>

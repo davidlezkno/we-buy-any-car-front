@@ -12,6 +12,78 @@ export const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+
+export const convertTo12Hour = (time) => {
+  let [hour, minutes] = time.split(":");
+  hour = parseInt(hour);
+
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12; // convierte 0 → 12 y 13–23 → 1–11
+
+  return `${hour.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+}
+
+export const getDayName = (dateString) => {
+  const date = new Date(dateString);
+
+  const days = [
+    "Sunday",    // 0
+    "Monday",    // 1
+    "Tuesday",   // 2
+    "Wednesday", // 3
+    "Thursday",  // 4
+    "Friday",    // 5
+    "Saturday"   // 6
+  ];
+
+  return days[date.getDay()];
+}
+
+export const getPeriod = (time) => {
+  // time debe venir en formato "HH:MM AM/PM"
+  const [hourMinute, modifier] = time.split(" ");
+  let [hour] = hourMinute.split(":");
+  hour = parseInt(hour, 10);
+
+  // Convertir a formato 24 horas
+  if (modifier === "PM" && hour !== 12) hour += 12;
+  if (modifier === "AM" && hour === 12) hour = 0;
+
+  // Determinar periodo
+  if (hour >= 5 && hour < 12) return "Morning";    
+  if (hour >= 12 && hour < 20) return "Afternoon"; 
+  return "Evening";                                
+}
+
+export const random3Digits = () => {
+  const num = Math.floor(100 + Math.random() * 900);
+  return num.toString();
+}
+
+export const formatPhone = (phone) =>{
+  return phone.replace(/\D/g, "");
+}
+
+export const formatUSD = (value) => {
+  const num = Number(value);
+  if (isNaN(num)) return "$0";
+
+  return (
+    "$" +
+    num
+      .toFixed(0) // sin decimales
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  );
+}
+
+
+export const cleanObject = (obj) =>
+  Object.fromEntries(
+    Object.entries(obj).filter(([key, value]) =>
+      value !== null && value !== ""
+    )
+  );
+
 /**
  * Format number with commas
  */

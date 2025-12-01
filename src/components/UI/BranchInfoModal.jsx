@@ -236,8 +236,8 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
                   <div className="branch-timing-wrapper">
                     <table className="w-full text-xs">
                       <tbody>
-                        {Object.entries(data.hours).map(([day, hours]) => (
-                          <tr key={day} className="border-b border-gray-200">
+                        {Object.entries(data.hours).map(([day, hours], index) => (
+                          <tr key={day + "-" + index} className="border-b border-gray-200">
                             <td className="py-1 font-semibold text-gray-700 pr-2">
                               {day}
                             </td>

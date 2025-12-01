@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
+import { getPeriod } from "../../utils/helpers";
 
 const CalendarScheduler = ({
   onTimeSlotSelect,
@@ -19,10 +20,61 @@ const CalendarScheduler = ({
   onSlotClick,
   onBookAppointment,
   initialPhone = "",
+  branches,
 }) => {
   const [dayOffset, setDayOffset] = useState(0); // Start from today (offset 0)
   const MAX_DAYS_AHEAD = 10; // Maximum days to show in the future
   const [zipCode, setZipCode] = useState("");
+  const [branchesData, setBranchesData] = useState(branches);
+  const [locations, setLocations] = useState([]);
+
+  useEffect(() => {
+    if(branchesData.length > 0 ){
+
+      const weekDays = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday'
+      ];
+
+      const locs = branchesData.map(branch => {
+        let obj = {};
+        for(let i = 0; i < branch.operationHours.length; i++){
+          const hour = branch.operationHours[i];
+
+          if(hour.type === "open"){
+            obj[weekDays.indexOf(hour.dayOfWeek)] = obj[weekDays.indexOf(hour.dayOfWeek)] ? {
+              Morning: obj[weekDays.indexOf(hour.dayOfWeek)].Morning || getPeriod(hour.openTime) == "Morning",
+              Afternoon: obj[weekDays.indexOf(hour.dayOfWeek)].Afternoon || getPeriod(hour.openTime) == "Afternoon",
+              Evening: obj[weekDays.indexOf(hour.dayOfWeek)].Evening || getPeriod(hour.closeTime) == "Evening",
+            } : {
+              Morning: getPeriod(hour.openTime) == "Morning",
+              Afternoon: getPeriod(hour.openTime) == "Afternoon",
+              Evening: getPeriod(hour.closeTime) == "Evening",
+            };
+          }
+
+        }
+        
+        return {
+          id: branch.branchId,
+          name:  branch.branchName,
+          location: branch.address1,
+          phone: branch.branchPhone,
+          type: "branch",
+          availability: obj,
+        }
+      });
+
+
+      setLocations(locs);
+    }
+  }, [branchesData]);
+  
 
   // Generate dates for the next 7 days starting from dayOffset (for desktop view)
   const getDates = (offset = 0) => {
@@ -93,6 +145,7 @@ const CalendarScheduler = ({
   const canGoBack = dayOffset > 0;
 
   const handleViewMoreDates = () => {
+    console.log("---- canGoForward ---", canGoForward);
     if (canGoForward) {
       // Advance by 7 days, but don't exceed MAX_DAYS_AHEAD - 7
       const newOffset = Math.min(dayOffset + 7, MAX_DAYS_AHEAD - 7);
@@ -153,50 +206,50 @@ const CalendarScheduler = ({
   const branchTimeSlots = generateBranchTimeSlots();
 
   // Example location data (should come from an API)
-  const locations = [
-    {
-      id: "home",
-      name: "We Come to You",
-      location: "New Jersey",
-      phone: "(484) 519-2538",
-      type: "home",
-      availability: {
-        // Example: only available Friday and Saturday
-        5: { Morning: true, Afternoon: true, Evening: false }, // Friday
-        6: { Morning: true, Afternoon: true, Evening: false }, // Saturday
-      },
-    },
-    {
-      id: "union",
-      name: "Union",
-      distance: "8 miles",
-      phone: "(908) 873-6460",
-      type: "branch",
-      availability: {
-        1: { Morning: true, Afternoon: true, Evening: true }, // Monday
-        2: { Morning: true, Afternoon: true, Evening: true }, // Tuesday
-        3: { Morning: true, Afternoon: true, Evening: true }, // Wednesday
-        4: { Morning: true, Afternoon: true, Evening: true }, // Thursday
-        5: { Morning: true, Afternoon: true, Evening: true }, // Friday
-        6: { Morning: true, Afternoon: true, Evening: true }, // Saturday
-      },
-    },
-    {
-      id: "plainfield",
-      name: "Plainfield",
-      distance: "10 miles",
-      phone: "(908) 873-6950",
-      type: "branch",
-      availability: {
-        1: { Morning: true, Afternoon: true, Evening: true },
-        2: { Morning: true, Afternoon: true, Evening: true },
-        3: { Morning: true, Afternoon: true, Evening: true },
-        4: { Morning: true, Afternoon: true, Evening: true },
-        5: { Morning: true, Afternoon: true, Evening: true },
-        6: { Morning: true, Afternoon: true, Evening: true },
-      },
-    },
-  ];
+  // const locations = [
+  //   {
+  //     id: "home",
+  //     name: "We Come to You",
+  //     location: "New Jersey",
+  //     phone: "(484) 519-2538",
+  //     type: "home",
+  //     availability: {
+  //       // Example: only available Friday and Saturday
+  //       5: { Morning: true, Afternoon: true, Evening: false }, // Friday
+  //       6: { Morning: true, Afternoon: true, Evening: false }, // Saturday
+  //     },
+  //   },
+  //   {
+  //     id: "union",
+  //     name: "Union",
+  //     distance: "8 miles",
+  //     phone: "(908) 873-6460",
+  //     type: "branch",
+  //     availability: {
+  //       1: { Morning: true, Afternoon: true, Evening: true }, // Monday
+  //       2: { Morning: true, Afternoon: true, Evening: true }, // Tuesday
+  //       3: { Morning: true, Afternoon: true, Evening: true }, // Wednesday
+  //       4: { Morning: true, Afternoon: true, Evening: true }, // Thursday
+  //       5: { Morning: true, Afternoon: true, Evening: true }, // Friday
+  //       6: { Morning: true, Afternoon: true, Evening: true }, // Saturday
+  //     },
+  //   },
+  //   {
+  //     id: "plainfield",
+  //     name: "Plainfield",
+  //     distance: "10 miles",
+  //     phone: "(908) 873-6950",
+  //     type: "branch",
+  //     availability: {
+  //       1: { Morning: true, Afternoon: true, Evening: true },
+  //       2: { Morning: true, Afternoon: true, Evening: true },
+  //       3: { Morning: true, Afternoon: true, Evening: true },
+  //       4: { Morning: true, Afternoon: true, Evening: true },
+  //       5: { Morning: true, Afternoon: true, Evening: true },
+  //       6: { Morning: true, Afternoon: true, Evening: true },
+  //     },
+  //   },
+  // ];
 
   const isSlotAvailable = (locationId, dayIndex, timeSlot) => {
     const location = locations.find((loc) => loc.id === locationId);
@@ -461,9 +514,9 @@ const CalendarScheduler = ({
                 <option value="">2. Select Branch (126 Locations)</option>
                 {filteredLocations
                   .filter((loc) => loc.type === "branch")
-                  .map((location) => (
+                  .map((location, index) => (
                     <option
-                      key={location.id}
+                      key={location.id + "-" + index}
                       value={location.id}
                       data-booking-requires-otp="true"
                     >
@@ -496,8 +549,8 @@ const CalendarScheduler = ({
               >
                 <option value="">3. Select Date</option>
                 {selectedLocationMobile &&
-                  allDatesForMobile.map((date) => (
-                    <option key={date.fullDate} value={date.fullDate}>
+                  allDatesForMobile.map((date, index) => (
+                    <option key={date.fullDate + "-" + index} value={date.fullDate}>
                       {date.day} {date.date}
                     </option>
                   ))}
@@ -521,8 +574,8 @@ const CalendarScheduler = ({
               <option value="">4. Select Time</option>
               {selectedLocationMobile &&
                 selectedDateMobile &&
-                branchTimeSlots.map((timeSlot) => (
-                  <option key={timeSlot} value={timeSlot}>
+                branchTimeSlots.map((timeSlot, index) => (
+                  <option key={timeSlot + "-" + index} value={timeSlot}>
                     {timeSlot}
                   </option>
                 ))}
@@ -721,8 +774,8 @@ const CalendarScheduler = ({
                 style={{ maxWidth: "100%", boxSizing: "border-box" }}
               >
                 <option value="">Select Date</option>
-                {allDatesForMobile.map((date) => (
-                  <option key={date.fullDate} value={date.fullDate}>
+                {allDatesForMobile.map((date, index) => (
+                  <option key={date.fullDate + "-" + index} value={date.fullDate}>
                     {date.day} {date.date}
                   </option>
                 ))}
@@ -748,8 +801,8 @@ const CalendarScheduler = ({
                 getAvailableTimesForDate(
                   selectedLocationMobile,
                   selectedDateMobile,
-                ).map((timeSlot) => (
-                  <option key={timeSlot} value={timeSlot}>
+                ).map((timeSlot, index) => (
+                  <option key={timeSlot + "-" + index} value={timeSlot}>
                     {timeSlot}
                   </option>
                 ))}
