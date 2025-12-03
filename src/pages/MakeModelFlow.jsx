@@ -25,7 +25,7 @@ import CalendarScheduler from "../components/UI/CalendarScheduler";
 import AppointmentModal from "../components/UI/AppointmentModal";
 import OTPModal from "../components/UI/OTPModal";
 import ValuationTabs from "../components/Home/ValuationTabs";
-import { CustomerDetailJourney, GetCustomerJourney, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
+import { CustomerDetailJourney, GetCustomerJourney, getImageVehicle, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
 import { saveValuationVehicle } from "../services/valuationService";
 import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
 import { cleanObject, formatPhone, formatUSD } from "../utils/helpers";
@@ -62,7 +62,7 @@ const MakeModelFlow = () => {
           const { year, make, model } = customerJourney;
           getSeries(year,model,make).then(series => {
             setListSeries(series);
-            setImageSelected(series[0].imageUrl);
+            loadImage(series[0].imageUrl);
           }).catch(error => {
             console.error("Error getting series:", error);
           });
@@ -73,6 +73,15 @@ const MakeModelFlow = () => {
       });
     }
   }, [ navigate ]);
+
+  const loadImage = async (imageUrl) => {
+    getImageVehicle(imageUrl).then(image => {
+      setImageSelected(image);
+    }).catch(error => {
+      console.error("Error getting image:", error);
+    });
+    
+  };
 
   // Determine initial step based on URL path and vehicle data
   // This allows direct URL access and proper state restoration
@@ -946,11 +955,25 @@ const MakeModelFlow = () => {
       "visitId": vehicleData.vid,
       "otpCode": "true"
     }).then(response => {
+      updateVehicleData({
+        ...vehicleData,
+        branchInfo: branchSelect,
+      });
+      updateAppointmentInfo(selectedAppointment);
       console.log("---- createAppointment response ---", response);
+      navigate("/valuation/confirmation", { replace: true });
     }).catch(error => {
+      updateVehicleData({
+        ...vehicleData,
+        branchInfo: branchSelect,
+      });
+      updateAppointmentInfo(selectedAppointment);
       alert("Error creating appointment");
+      navigate("/valuation/confirmation", { replace: true });
       console.error("Error creating appointment:", error);
     });
+
+    
       
     
 
@@ -958,23 +981,23 @@ const MakeModelFlow = () => {
 
   };
 
-  const handleFinalSubmit = () => {
-    if (selectedAppointment) {
-      updateAppointmentInfo(selectedAppointment);
+  // const handleFinalSubmit = () => {
+  //   if (selectedAppointment) {
+  //     updateAppointmentInfo(selectedAppointment);
 
-      // Track appointment confirmation for analytics
-      trackAppointmentConfirm({
-        date: selectedAppointment.date,
-        time: selectedAppointment.time || selectedAppointment.specificTime?.timeSlot24Hour,
-        location: selectedAppointment.location,
-        locationId: selectedAppointment.locationId,
-      });
+  //     // Track appointment confirmation for analytics
+  //     trackAppointmentConfirm({
+  //       date: selectedAppointment.date,
+  //       time: selectedAppointment.time || selectedAppointment.specificTime?.timeSlot24Hour,
+  //       location: selectedAppointment.location,
+  //       locationId: selectedAppointment.locationId,
+  //     });
 
-      // Navigate to confirmation page - URL changes to /valuation/confirmation
-      // This URL change will be detected by Google Tag Manager and GA4
-      navigate("/valuation/confirmation", { replace: true });
-    }
-  };
+  //     // Navigate to confirmation page - URL changes to /valuation/confirmation
+  //     // This URL change will be detected by Google Tag Manager and GA4
+  //     navigate("/valuation/confirmation", { replace: true });
+  //   }
+  // };
 
   const handleSearchByZip = (e) => {
     e.preventDefault();
@@ -1296,7 +1319,7 @@ const MakeModelFlow = () => {
                       id="series-select"
                       {...register("series")}
                       onChange={(e) => {
-                        setListBodyTypes(e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));
+                        setListBodyTypes( e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));                        
                       }}
                     />
 
@@ -1308,8 +1331,12 @@ const MakeModelFlow = () => {
                       disabled={listBodyTypes.length === 0}
                       onChange={(e) => {
                         const newBodyType = e.target.value;
-                        setImageSelected(listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "");
-                        
+                        console.log("newBodyType", newBodyType);
+                        // const newBodyType = e.target.value;
+                        // const urlIMG = listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "";
+                        // console.log("newBodyType", urlIMG);
+                        // loadImage(urlIMG);
+                        setImageSelected(listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "");                        
                       }}
                       id="body-type-select"
                       {...register("bodyType", {

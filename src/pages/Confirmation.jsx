@@ -21,6 +21,40 @@ const Confirmation = () => {
   const contentRef = useRef(null);
   const headerRef = useRef(null);
   const trustpilotWidgetRef = useRef(null);
+  const [branchInfo, setBranchInfo] = useState(null);
+  useEffect(() => {
+    if (vehicleData) {
+      const branch = vehicleData.branchInfo;
+      const hoursData = {};
+      for(let i = 0; i < branch.operationHours.length; i++){
+        if(hoursData[branch.operationHours[i].dayOfWeek] && hoursData[branch.operationHours[i].dayOfWeek] != "Closed"){
+          hoursData[branch.operationHours[i].dayOfWeek] += ` - ${branch.operationHours[i].closeTime}`;
+        }else{
+          hoursData[branch.operationHours[i].dayOfWeek] = branch.operationHours[i].type == "open" ? branch.operationHours[i].openTime : "Closed";
+        }                
+      }
+      setBranchInfo({
+        name: branch.branchName,
+        city: branch.city,
+        address: branch.address1,
+        fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
+        phone: branch.branchPhone,
+        email: branch.branchEmail,
+        manager: branch.branchManagerName,
+        hours: hoursData,
+        // {
+        //   Tuesday: "Closed",
+        //   Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+        //   Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
+        //   Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+        //   Saturday: "9a.m. - 12p.m., 1p.m. - 6p.m.",
+        //   Sunday: "Closed",
+        //   Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+        // },
+      });
+      console.log("---- branchInfo ---", branchInfo);
+    }
+  }, [vehicleData]);
   const [expandedSections, setExpandedSections] = useState({
     checklist: true,
     landmarks: false,
@@ -36,7 +70,7 @@ const Confirmation = () => {
     });
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { 
     // Redirect if no appointment info
     if (!appointmentInfo) {
       navigate("/");
@@ -88,6 +122,7 @@ const Confirmation = () => {
         }
       }
     };
+
     
     // Function to ensure widget wrapper is visible
     const ensureWidgetVisible = () => {
@@ -663,7 +698,7 @@ const Confirmation = () => {
     if (!appointmentInfo) return;
 
     const appointmentDate = appointmentInfo.date || appointmentInfo.dateFormatted;
-    const appointmentTime = appointmentInfo.specificTime || appointmentInfo.time || "9:00 AM";
+    const appointmentTime = appointmentInfo.specificTime?.timeSlot24Hour || appointmentInfo.time || "9:00 AM";
     const location = appointmentInfo.location || branchInfo.name;
     
     // Generate UID (unique identifier for the event)
@@ -746,24 +781,24 @@ const Confirmation = () => {
   };
 
   // Branch information (hardcoded for now, can be made dynamic)
-  const branchInfo = {
-    name: "Elmwood Park",
-    city: "Elmwood Park, NJ",
-    address: "68 Leliarts Lane",
-    fullAddress: "68 Leliarts Lane, Elmwood Park, NJ 07407",
-    phone: "(201) 773-1009",
-    email: "elmwoodpark.nj@webuyanycarusa.com",
-    manager: "Bernardo Sanchez",
-    hours: {
-      Tuesday: "Closed",
-      Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-      Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
-      Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-      Saturday: "9a.m. - 12p.m., 1p.m. - 6p.m.",
-      Sunday: "Closed",
-      Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-    },
-  };
+  // const branchInfo = {
+  //   name: "Elmdsdsdsdafasdfwood Park",
+  //   city: "Elmasdfsadfsdawood Park, NJ",
+  //   address: "68 Leliarts Lane",
+  //   fullAddress: "68 Leliarts Lane, Elmwood Park, NJ 07407",
+  //   phone: "(201) 773-1009",
+  //   email: "elmwoodpark.nj@webuyanycarusa.com",
+  //   manager: "Bernardo Sanchez",
+  //   hours: {
+  //     Tuesday: "Closed",
+  //     Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+  //     Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
+  //     Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+  //     Saturday: "9a.m. - 12p.m., 1p.m. - 6p.m.",
+  //     Sunday: "Closed",
+  //     Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
+  //   },
+  // };
 
   const landmarks = [
     "Off Broadway Street: Where the Firestone Complete Auto Care is ONTO 54th Steet towards Molnar Drive.",
@@ -774,8 +809,10 @@ const Confirmation = () => {
   if (!appointmentInfo) {
     return null;
   }
+  
 
   return (
+    branchInfo && (
     <div className="section-container py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4" ref={contentRef}>
         {/* Title Bar */}
@@ -832,7 +869,7 @@ const Confirmation = () => {
                   <div className="flex justify-between items-center py-3">
                     <span className="font-semibold text-gray-700">Time</span>
                     <span className="text-gray-900">
-                      {appointmentInfo.specificTime ||
+                      {appointmentInfo.specificTime?.timeSlot24Hour ||
                         appointmentInfo.time ||
                         "Not specified"}
                     </span>
@@ -976,10 +1013,9 @@ const Confirmation = () => {
                   data-stars="5"
                   data-schema-type="Organization"
                 >
-                  <a
+                  <a rel="noreferrer"
                     href="https://www.trustpilot.com/review/webuyanycarusa.com"
                     target="_blank"
-                    rel="noopener"
                     style={{ display: "none" }}
                   >
                     Trustpilot
@@ -1333,7 +1369,7 @@ const Confirmation = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div>)
   );
 };
 

@@ -11,7 +11,7 @@ export const getBranches = async (zipCode, limit, type, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/content/branches?zipCode=${zipCode}&limit=${limit}&branchType=${type}`, { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);

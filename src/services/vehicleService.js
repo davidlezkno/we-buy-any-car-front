@@ -253,6 +253,30 @@ export const getVehicleYears = async (retries = 3) => {
   }
 };
 
+
+export const getImageVehicle = async (externalUrl, retries = 3) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await fetch(
+      `http://localhost:5001/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
+      { headers }
+    );
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob); // URL para usar en <img>
+    return objectUrl;
+    
+  } catch (error) {
+    console.error('Get years error:', error);
+    if (retries === 0) return [];
+    return getVehicleYears(retries - 1);
+  }
+};
+
 /**
  * Get vehicle image URL
  * @param {string} make - Vehicle make
