@@ -129,7 +129,7 @@ export const createCustomerJourneyByVin = async ( vin = 1, retries = 3 ) => {
     };
     const response = await httpClient.post(
       `http://localhost:5001/api/customer-journey/vin`, 
-      {visitId: 0, vin: vin}, 
+      {visitId: 1, vin: vin}, 
       { headers }
     );
     return response.data;

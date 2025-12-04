@@ -6,14 +6,16 @@ import { useLocation } from "react-router-dom";
 const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   const location = useLocation();
   // Check if we're on step 2 (Series & Body) - URL is /valuation/details
-  const isStep2 = location.pathname === "/valuation/details";  
+  const isStep2 = location.pathname.indexOf("/valuation/details") >= 0;  
   const [imageLoading, setImageLoading] = useState(false);
+  const [imageToShow, setImageToShow] = useState(imageUrl);
 
   useEffect(() => {
     if(imageUrl !== ""){
       setImageLoading(false);
+      setImageToShow(imageUrl);
     }
-  }, [imageUrl,loading]);
+  }, [imageUrl]);
 
 
   // Only show waiting message if we don't have the minimum required vehicle data
@@ -56,25 +58,21 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="spinner border-primary-600 border-t-transparent" />
             </div>
-          ) : imageUrl ? (
-            <img
-              src={imageUrl}
+          ) : imageToShow ?  (
+            <motion.img
+              id="vehicle-image"
+              src={imageToShow}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               className="w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              onError={(e) => {
+                // If image fails, use default image
+                const basePath = import.meta.env.BASE_URL || "/";
+                e.currentTarget.src = `${basePath}vehicles/default-car.jpg`;
+              }}
             />
-            // <motion.img
-            //   src={imageUrl}
-            //   alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            //   className="w-full h-full object-cover"
-            //   initial={{ opacity: 0 }}
-            //   animate={{ opacity: 1 }}
-            //   transition={{ duration: 0.5 }}
-            //   onError={(e) => {
-            //     // If image fails, use default image
-            //     const basePath = import.meta.env.BASE_URL || "/";
-            //     e.currentTarget.src = `${basePath}vehicles/default-car.jpg`;
-            //   }}
-            // />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
               <Car className="w-20 h-20 text-gray-300" />
