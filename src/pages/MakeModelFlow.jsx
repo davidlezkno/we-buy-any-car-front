@@ -30,6 +30,7 @@ import { saveValuationVehicle } from "../services/valuationService";
 import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
 import { cleanObject, formatPhone, formatUSD } from "../utils/helpers";
 import { createAppointment } from "../services/appointmentService";
+import { allowedZips } from "../utils/model";
 
 const MakeModelFlow = () => {
   const navigate = useNavigate();
@@ -1618,6 +1619,8 @@ const MakeModelFlow = () => {
                             value: /^\d{5}$/,
                             message: "Invalid ZIP code",
                           },
+                          validate: (value) =>
+                            allowedZips.includes(value) || "ZIP code not allowed",
                         })}
                       />
 
