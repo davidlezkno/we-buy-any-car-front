@@ -4,15 +4,29 @@
 
 /* OTP Loading Spinner Animation */
 @keyframes loading-spinner-line-fade {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.1;
   }
+
   50% {
     opacity: 1;
   }
 }
 
 @layer base {
+
+  /* Define custom font */
+  @font-face {
+    font-family: 'Arial Rounded MT Bold';
+    src: url('./assets/fonts/ArialRoundedMTBold.woff') format('woff'),
+      url('./assets/fonts/ArialRoundedMTBold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
   /* Typography: Arial Rounded MT Bold for entire site */
   html {
     scroll-behavior: smooth;
@@ -88,11 +102,10 @@
 }
 
 @layer components {
+
   /* Modernized buttons: Glassmorphism style */
   .btn {
-    @apply px-6 py-3.5 rounded-2xl font-semibold transition-all duration-500 
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-6 py-3.5 rounded-2xl font-semibold transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed;
     letter-spacing: 0.01em;
     position: relative;
     overflow: hidden;
@@ -116,12 +129,10 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
     transition: left 0.5s;
   }
 
@@ -181,7 +192,7 @@
       padding-top: 1rem !important;
       padding-bottom: 1rem !important;
     }
-    
+
     /* Mobile: Custom padding for form containers with rounded-3xl p-10 */
     .rounded-3xl.p-10 {
       padding-left: 2rem !important;
@@ -208,9 +219,7 @@
 
   /* Inputs: More pronounced Apple-style Glassmorphism */
   .input-field {
-    @apply w-full px-5 py-4 rounded-2xl border 
-           focus:border-primary-500 focus:ring-2 focus:ring-primary-100 
-           outline-none transition-all duration-500;
+    @apply w-full px-5 py-4 rounded-2xl border focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-500;
     font-size: 0.9375rem;
     font-weight: 500;
     /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
@@ -257,9 +266,7 @@
 
   /* Select field: same improved glass style */
   .select-field {
-    @apply w-full px-5 rounded-2xl border 
-           focus:border-primary-500 focus:ring-2 focus:ring-primary-100 
-           outline-none transition-all duration-500 appearance-none cursor-pointer;
+    @apply w-full px-5 rounded-2xl border focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all duration-500 appearance-none cursor-pointer;
     font-size: 18px;
     font-weight: 600;
     /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
@@ -313,7 +320,7 @@
       min-height: 50px !important;
       max-height: 50px !important;
     }
-    
+
     /* Specific height for plate state select in mobile */
     #homepage-plate-state-select {
       height: 60px !important;
@@ -411,24 +418,22 @@
     right: 0;
     bottom: 0;
     background:
-      radial-gradient(
-        circle at 30% 50%,
+      radial-gradient(circle at 30% 50%,
         rgba(255, 255, 255, 0.15),
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 70% 80%,
+        transparent 50%),
+      radial-gradient(circle at 70% 80%,
         rgba(255, 255, 255, 0.1),
-        transparent 50%
-      );
+        transparent 50%);
     pointer-events: none;
   }
 
   @keyframes gradientShift {
+
     0%,
     100% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
@@ -454,12 +459,15 @@
   .animation-delay-200 {
     animation-delay: 0.2s;
   }
+
   .animation-delay-400 {
     animation-delay: 0.4s;
   }
+
   .animation-delay-600 {
     animation-delay: 0.6s;
   }
+
   .animation-delay-800 {
     animation-delay: 0.8s;
   }
@@ -469,6 +477,7 @@
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
@@ -476,12 +485,10 @@
 
   .animate-shimmer {
     animation: shimmer 2s infinite;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(32, 178, 77, 0.1),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(32, 178, 77, 0.1),
+        transparent);
     background-size: 200% 100%;
   }
 }
@@ -523,6 +530,7 @@
 
 /* Pulse animation for completed numbers */
 @keyframes pulse {
+
   0%,
   100% {
     box-shadow:
@@ -530,6 +538,7 @@
       0 6px 24px 0 rgba(34, 197, 94, 0.5),
       0 0 0 4px rgba(34, 197, 94, 0.2);
   }
+
   50% {
     box-shadow:
       0 12px 48px 0 rgba(34, 197, 94, 0.8),
@@ -548,6 +557,7 @@
 }
 
 @media (max-width: 1024px) {
+
   /* Tablets and mobile */
   .container-cards-info {
     display: flex;
@@ -603,7 +613,7 @@
     display: none !important;
     visibility: hidden !important;
   }
-  
+
   .trustpilot-widget #wrapper-right {
     display: none !important;
     visibility: hidden !important;
@@ -874,18 +884,17 @@
     margin-top: 10px !important;
     padding-top: 15px !important;
   }
-  
-  .calendar-container-mobile > div:first-child {
+
+  .calendar-container-mobile>div:first-child {
     margin-top: 0 !important;
   }
 
-  #choose-where-to-sell-header{
-    margin-bottom: 0px!important;
+  #choose-where-to-sell-header {
+    margin-bottom: 0px !important;
   }
 
-  #mobile-branch-toggle{
-    margin-top: 5px!important;
+  #mobile-branch-toggle {
+    margin-top: 5px !important;
   }
 
 }
-

@@ -41,7 +41,7 @@ const MakeModelFlow = () => {
   const [branchesData, setBranchesData] = useState([]);
   const [branchesHours, setBranchesHours] = useState([]);
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
- 
+
   const {
     updateVehicleData,
     vehicleData,
@@ -51,28 +51,92 @@ const MakeModelFlow = () => {
     resetData,
   } = useApp();
 
+  // Initialize component and generate auth token
+  useEffect(() => {
+    // Generate JWT token if not present
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      import('../services/auth').then(({ uathLogin }) => {
+        uathLogin('admin', 'password123')
+          .then(() => {
+            console.log('JWT token generated successfully');
+          })
+          .catch(error => {
+            console.error('Failed to generate JWT token:', error);
+          });
+      });
+    }
+  }, []);
+
+  // Load Trustpilot widget
+  useEffect(() => {
+    if (window.Trustpilot) {
+      window.Trustpilot.loadFromElement(trustpilotWidgetRef.current, true);
+    }
+  }, []);
+
   useEffect(() => {
     const customerJourneyId = new URLSearchParams(window.location.search).get("uid") || localStorage.getItem("customerJourneyId");
     setCustomerJourneyId(customerJourneyId);
-    if(!customerJourneyId){
+    if (!customerJourneyId) {
       navigate("/");
-    }else{
+    } else {
       GetCustomerJourney(customerJourneyId).then(customerJourney => {
-        if(customerJourney){
+        if (customerJourney) {
           const { year, make, model } = customerJourney;
-          getSeries(year,model,make).then(series => {
+
+          // Update vehicle data with journey data
+          updateVehicleData({
+            ...vehicleData,
+            ...customerJourney
+          });
+
+          getSeries(year, model, make).then(series => {
             setListSeries(series);
             loadImage(series[0].imageUrl);
           }).catch(error => {
             console.error("Error getting series:", error);
           });
+
+          // If we are on the appointment step (Step 4) and have no valuation, fetch it
+          const currentStep = getInitialStepFromUrl();
+          if (currentStep === 4 && !valuation) {
+            setLoadingValuation(true);
+            saveValuationVehicle({
+              "cvid": customerJourney.customerVehicleId,
+              "mileage": customerJourney.mileage || customerJourney.odometer,
+              "zipCode": customerJourney.zipCode,
+              "email": customerJourney.email,
+              "isFinancedOrLeased": customerJourney.isFinancedOrLeased,
+              "carIsDriveable": customerJourney.carIsDriveable,
+              "hasDamage": customerJourney.hasDamage,
+              "hasBeenInAccident": customerJourney.hasBeenInAccident,
+              "optionalPhoneNumber": customerJourney.optionalPhoneNumber,
+              "customerJourneyId": customerJourneyId,
+              "customerHasOptedIntoSmsMessages": customerJourney.customerHasOptedIntoSmsMessages,
+              "captchaMode": "true"
+            }).then(response => {
+              setValuation({ formattedValue: formatUSD(response.valuationAmount) });
+            }).catch(error => {
+              console.error("Error restoring valuation:", error);
+            }).finally(() => {
+              setLoadingValuation(false);
+            });
+          }
         }
       }).catch(error => {
         console.error("Error getting customer journey:", error);
         navigate("/");
       });
     }
-  }, [ navigate ]);
+  }, [navigate]);
+
+  // Populate listBodyTypes when series is pre-selected
+  useEffect(() => {
+    if (listSeries.length > 0 && vehicleData?.series) {
+      setListBodyTypes(listSeries.filter(item => item.series === vehicleData.series));
+    }
+  }, [listSeries, vehicleData?.series]);
 
   const loadImage = async (imageUrl) => {
     getImageVehicle(imageUrl).then(image => {
@@ -80,7 +144,7 @@ const MakeModelFlow = () => {
     }).catch(error => {
       console.error("Error getting image:", error);
     });
-    
+
   };
 
   // Determine initial step based on URL path and vehicle data
@@ -116,7 +180,7 @@ const MakeModelFlow = () => {
   };
 
   const [step, setStep] = useState(getInitialStepFromUrl);
-  
+
   // Sync step with URL when location changes (for direct URL access)
   // This allows users to refresh or directly access URLs and restore the correct step
   // Also tracks page views for GTM and GA4
@@ -288,7 +352,7 @@ const MakeModelFlow = () => {
     const digits = getDigitsOnly(phone);
     // Limit to 10 digits
     const limitedDigits = digits.slice(0, 10);
-    
+
     if (limitedDigits.length === 0) return "";
     if (limitedDigits.length <= 3) return `(${limitedDigits}`;
     if (limitedDigits.length <= 6) {
@@ -330,7 +394,7 @@ const MakeModelFlow = () => {
   const canAddDamage = damageZone && damageComponent && damageType;
 
   useEffect(() => {
-    if(years.length === 0){
+    if (years.length === 0) {
       getVehicleYears().then(yearsData => {
         setYears(yearsData.map(year => year.toString()));
       }).catch(error => {
@@ -352,7 +416,7 @@ const MakeModelFlow = () => {
       const loadModels = async () => {
         setLoading(true);
         try {
-          const modelsData = await getModelsByMake(vehicleData.year,vehicleData.make);
+          const modelsData = await getModelsByMake(vehicleData.year, vehicleData.make);
           setModels(modelsData);
         } catch (error) {
           console.error("Error loading models:", error);
@@ -442,7 +506,7 @@ const MakeModelFlow = () => {
       // Wait for Trustpilot script to be available and initialize widget
       const initTrustpilot = () => {
         attempts++;
-        
+
         // Check if Trustpilot script is loaded
         if (window.Trustpilot && trustpilotWidgetRef.current) {
           try {
@@ -456,7 +520,7 @@ const MakeModelFlow = () => {
             }
             // Trustpilot widgets should auto-initialize when script is loaded
             // The script scans for elements with class 'trustpilot-widget'
-            
+
             // Apply styles to Trustpilot profile link after widget loads
             const applyTrustpilotStyles = () => {
               const profileLink = document.querySelector(
@@ -480,21 +544,21 @@ const MakeModelFlow = () => {
               }
               return false;
             };
-            
+
             // Use MutationObserver to watch for the element being added
             const observer = new MutationObserver(() => {
               if (applyTrustpilotStyles()) {
                 observer.disconnect();
               }
             });
-            
+
             if (trustpilotWidgetRef.current) {
               observer.observe(trustpilotWidgetRef.current, {
                 childList: true,
                 subtree: true,
               });
             }
-            
+
             // Try multiple times as widget loads asynchronously
             setTimeout(() => applyTrustpilotStyles(), 500);
             setTimeout(() => applyTrustpilotStyles(), 1000);
@@ -588,7 +652,7 @@ const MakeModelFlow = () => {
         // Reset model when make changes
         setValue("model", "");
         try {
-          const modelsData = await getModelsByMake(vehicleData.year,watchMake);
+          const modelsData = await getModelsByMake(vehicleData.year, watchMake);
           setModels(modelsData);
         } catch (error) {
           console.error("Error loading models:", error);
@@ -614,7 +678,7 @@ const MakeModelFlow = () => {
       model: data.model,
     });
 
-    
+
     // Track form submission for analytics
     trackFormSubmit("vehicle_info", {
       vehicle_year: data.year,
@@ -627,7 +691,7 @@ const MakeModelFlow = () => {
   };
 
   const handleSeriesBodySubmit = (data) => {
-    
+
     // Track form submission for analytics
     trackFormSubmit("series_body", {
       vehicle_series: data.series || null,
@@ -639,14 +703,14 @@ const MakeModelFlow = () => {
       "bodyStyle": data.bodyType,
     }, customerJourneyId).then(response => {
       const cleanResponse = cleanObject(response);
-      updateVehicleData({...vehicleData, ...cleanResponse});  
+      updateVehicleData({ ...vehicleData, ...cleanResponse });
       updateStepAndNavigate(3);
     }).catch(error => {
       console.error("Error updating customer journey:", error);
     });
 
     // Navigate to step 3 (Vehicle Condition) - URL changes to /valuation/condition
-    
+
   };
 
   // Handle adding damage
@@ -679,6 +743,14 @@ const MakeModelFlow = () => {
   };
 
   const handleVehicleConditionSubmit = (data) => {
+    // Check for high mileage
+    if (data.odometer && parseInt(data.odometer, 10) > 200000) {
+      const formattedMileage = new Intl.NumberFormat().format(parseInt(data.odometer, 10));
+      if (!window.confirm(`are you sure ? that your current milleage are more than ${formattedMileage} ok`)) {
+        return;
+      }
+    }
+
     // If runsAndDrives is "No", or hasIssues is "Yes", or hasAccident is "Yes", show additional questions
     if (
       data.runsAndDrives === "No" ||
@@ -698,7 +770,7 @@ const MakeModelFlow = () => {
       setShowAdditionalQuestions(true);
     } else {
       // If "Yes", advance directly to step 4
-      
+
       updateUserInfo({
         zipCode: data.zipCode,
         email: data.email,
@@ -714,7 +786,7 @@ const MakeModelFlow = () => {
         has_clear_title: data.hasClearTitle,
         odometer: data.odometer,
       });
-      
+
       getBranches(data.zipCode, 1, "Physical").then(branches => {
         sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
         setBranchesData(branches.branchLocations);
@@ -725,7 +797,7 @@ const MakeModelFlow = () => {
       // await getValuationVehicle(vehicleData.customerVehicleId).then(valuationVehicle => {
       //   console.log("-----------------valuationVehicle--------------------------------", valuationVehicle);
       // });
-      
+
       // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
       updateStepAndNavigate(4);
     }
@@ -749,14 +821,14 @@ const MakeModelFlow = () => {
       }).catch(error => {
         console.error("Error getting branches:", error);
       });
-      
+
       updateVehicleData({
         ...vehicleData,
         ...cleanData
       });
 
       saveValuationVehicle({
-        "cvid":cleanData.customerVehicleId,
+        "cvid": cleanData.customerVehicleId,
         "mileage": data.odometer,
         "zipCode": data.zipCode,
         "email": data.email,
@@ -770,7 +842,7 @@ const MakeModelFlow = () => {
         "captchaMode": "true"
       }).then(response => {
         setLoadingValuation(false);
-        setValuation({formattedValue:formatUSD(response.valuationAmount)});
+        setValuation({ formattedValue: formatUSD(response.valuationAmount) });
 
 
       }).catch(error => {
@@ -908,10 +980,10 @@ const MakeModelFlow = () => {
   };
 
   const handleAppointmentConfirm = (appointmentData) => {
-    
+
     console.log("---- appointmentData ---", appointmentData);
     console.log("---- VEHICLE DATA ---", vehicleData);
-    
+
     setSelectedAppointment(appointmentData);
     setIsModalOpen(false);
     setSelectedSlot(null);
@@ -935,9 +1007,9 @@ const MakeModelFlow = () => {
     });
 
 
-    
 
-    
+
+
     const branchSelect = branchesData.find(branch => branch.branchId === appointmentData.locationId);
     createAppointment({
       "customerVehicleId": vehicleData.customerVehicleId,
@@ -953,7 +1025,8 @@ const MakeModelFlow = () => {
       "city": appointmentData.location,
       "model": vehicleData.model,
       "visitId": vehicleData.vid,
-      "otpCode": "true"
+      "smsOptIn": appointmentData.receiveSMS || false,
+      "otpCode": appointmentData.otpCode || ""
     }).then(response => {
       updateVehicleData({
         ...vehicleData,
@@ -973,11 +1046,11 @@ const MakeModelFlow = () => {
       console.error("Error creating appointment:", error);
     });
 
-    
-      
-    
 
-    
+
+
+
+
 
   };
 
@@ -1032,7 +1105,7 @@ const MakeModelFlow = () => {
         onPlateSubmit={(_state, _plate) => {
           navigate("/sell-by-plate");
         }}
-        onOpenVinHelp={() => {}}
+        onOpenVinHelp={() => { }}
         hideHeaderAndTabs={true}
       />
     );
@@ -1061,7 +1134,7 @@ const MakeModelFlow = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-2xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 tracking-tight">
-            Vehicle Condition
+              Vehicle Condition
             </h1>
           </motion.div>
         )}
@@ -1312,15 +1385,16 @@ const MakeModelFlow = () => {
                     {/* Added unique IDs for automation testing */}
                     <Select
                       label="Select Series"
-                      options={ listSeries[0] ? [...new Set(listSeries.map(item => (item.series)))] : [] }
+                      options={listSeries[0] ? [...new Set(listSeries.map(item => (item.series)))] : []}
                       placeholder="Select Series"
                       error={errors.series?.message}
                       disabled={listSeries.length === 0}
                       id="series-select"
-                      {...register("series")}
-                      onChange={(e) => {
-                        setListBodyTypes( e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));                        
-                      }}
+                      {...register("series", {
+                        onChange: (e) => {
+                          setListBodyTypes(e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));
+                        }
+                      })}
                     />
 
                     <Select
@@ -1329,18 +1403,14 @@ const MakeModelFlow = () => {
                       placeholder="Select body type"
                       error={errors.bodyType?.message}
                       disabled={listBodyTypes.length === 0}
-                      onChange={(e) => {
-                        const newBodyType = e.target.value;
-                        console.log("newBodyType", newBodyType);
-                        // const newBodyType = e.target.value;
-                        // const urlIMG = listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "";
-                        // console.log("newBodyType", urlIMG);
-                        // loadImage(urlIMG);
-                        setImageSelected(listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "");                        
-                      }}
                       id="body-type-select"
                       {...register("bodyType", {
                         required: "Body type is required",
+                        onChange: (e) => {
+                          const newBodyType = e.target.value;
+                          const urlIMG = listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "";
+                          loadImage(urlIMG);
+                        }
                       })}
                     />
 
@@ -1348,11 +1418,10 @@ const MakeModelFlow = () => {
                       {/* Added unique IDs for automation testing */}
                       <Button
                         type="submit"
-                        className={`w-full ${
-                          !watchSeries || !watchBodyType
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
+                        className={`w-full ${!watchSeries || !watchBodyType
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                          }`}
                         icon={ArrowRight}
                         iconPosition="right"
                         id="continue-to-step-3-button"
@@ -1381,7 +1450,7 @@ const MakeModelFlow = () => {
                 transition={{ duration: 0.5, type: "spring" }}
               >
                 <div
-                  className="rounded-3xl p-10 transition-all duration-500"
+                  className="rounded-3xl p-6 transition-all duration-500"
                   style={{
                     background: "rgba(255, 255, 255, 0.75)",
                     backdropFilter: "blur(40px)",
@@ -1391,7 +1460,7 @@ const MakeModelFlow = () => {
                       "0 20px 60px 0 rgba(31, 38, 135, 0.2), 0 8px 24px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.95)",
                   }}
                 >
-                  <div className="mb-8">
+                  <div className="mb-4">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
                       Vehicle Condition & Your Information
                     </h2>
@@ -1399,12 +1468,12 @@ const MakeModelFlow = () => {
 
                   <form
                     onSubmit={handleSubmit(handleVehicleConditionSubmit)}
-                    className="space-y-7"
+                    className="space-y-2"
                   >
                     {/* Vehicle Condition Questions */}
-                    <div className="space-y-6 pb-6 border-b border-gray-200">
+                    <div className="space-y-3 pb-2">
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Does Your Car Run and Drive?
                         </label>
                         <div className="flex gap-4">
@@ -1417,7 +1486,7 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1429,7 +1498,7 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1442,7 +1511,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Does Your Car Have Cosmetic or Mechanical Issues?
                         </label>
                         <div className="flex gap-4">
@@ -1455,7 +1524,7 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1467,7 +1536,7 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1480,7 +1549,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Has Your Car Ever Been in an Accident?
                         </label>
                         <div className="flex gap-4">
@@ -1493,7 +1562,7 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1505,7 +1574,7 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1518,7 +1587,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Do You Have a Clear Title?
                         </label>
                         <p className="text-xs text-gray-500 mb-2">
@@ -1535,7 +1604,7 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1547,7 +1616,7 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5 accent-[#20B24D]"
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1578,7 +1647,7 @@ const MakeModelFlow = () => {
                     </div>
 
                     {/* User Information */}
-                    <div className="space-y-6">
+                    <div className="space-y-2">
                       {/* Added unique IDs for automation testing */}
                       <Input
                         label="ZIP Code"
@@ -1652,7 +1721,7 @@ const MakeModelFlow = () => {
                           id="receive-sms-checkbox"
                           {...register("receiveSMS")}
                           disabled={!watchPhone || getDigitsOnly(watchPhone || "").length !== 10}
-                          className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="w-5 h-5 accent-[#20B24D] border-gray-300 rounded focus:ring-[#20B24D] focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                         <span className="text-gray-600 text-sm">
                           Receive text (SMS) messages about your valuation*
@@ -1664,17 +1733,16 @@ const MakeModelFlow = () => {
                       {/* Added unique IDs for automation testing */}
                       <Button
                         type="submit"
-                        className={`w-full ${
-                          !watchRunsAndDrives ||
+                        className={`w-full ${!watchRunsAndDrives ||
                           !watchHasIssues ||
                           !watchHasAccident ||
                           !watchHasClearTitle ||
                           !watchOdometer ||
                           !watchZipCode ||
                           !watchEmail
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                          }`}
                         icon={ArrowRight}
                         iconPosition="right"
                         id="submit-vehicle-info-button"
@@ -1690,23 +1758,23 @@ const MakeModelFlow = () => {
                         style={{
                           background:
                             !watchRunsAndDrives ||
-                            !watchHasIssues ||
-                            !watchHasAccident ||
-                            !watchHasClearTitle ||
-                            !watchOdometer ||
-                            !watchZipCode ||
-                            !watchEmail
+                              !watchHasIssues ||
+                              !watchHasAccident ||
+                              !watchHasClearTitle ||
+                              !watchOdometer ||
+                              !watchZipCode ||
+                              !watchEmail
                               ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)"
                               : "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)",
                           color: "#FFFFFF",
                           borderColor:
                             !watchRunsAndDrives ||
-                            !watchHasIssues ||
-                            !watchHasAccident ||
-                            !watchHasClearTitle ||
-                            !watchOdometer ||
-                            !watchZipCode ||
-                            !watchEmail
+                              !watchHasIssues ||
+                              !watchHasAccident ||
+                              !watchHasClearTitle ||
+                              !watchOdometer ||
+                              !watchZipCode ||
+                              !watchEmail
                               ? "#9ca3af"
                               : "#000000",
                         }}
@@ -1716,7 +1784,7 @@ const MakeModelFlow = () => {
                     </div>
 
                     {/* Wizard Footer - Disclosure Information */}
-                    <div id="wizard-footer" className="mt-8 pt-6 border-t border-gray-200 space-y-4">
+                    <div id="wizard-footer" className="mt-4 pt-4 border-t border-gray-200 space-y-2">
                       {/* Email Disclosure */}
                       <p className="email-disclosure text-xs text-gray-600 leading-relaxed">
                         By entering your email address, you will receive confirmation
@@ -1768,7 +1836,7 @@ const MakeModelFlow = () => {
                 ref={contentRef}
               >
                 <div
-                  className="rounded-3xl p-5 md:p-8 lg:p-12 transition-all duration-500 relative overflow-hidden"
+                  className="rounded-3xl p-6 transition-all duration-500 relative overflow-hidden"
                   style={{
                     background: "rgba(255, 255, 255, 0.75)",
                     backdropFilter: "blur(40px)",
@@ -1778,7 +1846,7 @@ const MakeModelFlow = () => {
                       "0 20px 60px 0 rgba(31, 38, 135, 0.2), 0 8px 24px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.95)",
                   }}
                 >
-                  <div className="mb-8">
+                  <div className="mb-4">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
                       Additional Vehicle Information
                     </h2>
@@ -1786,12 +1854,12 @@ const MakeModelFlow = () => {
 
                   <form
                     onSubmit={handleSubmit(handleAdditionalQuestionsSubmit)}
-                    className="space-y-7"
+                    className="space-y-2"
                   >
                     {/* Additional questions */}
-                    <div className="space-y-6 pb-6 border-b border-gray-200">
+                    <div className="space-y-2 pb-2">
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Does your car run and drive?
                         </label>
                         <div className="flex gap-4">
@@ -1829,7 +1897,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Is there history on your vehicle resulting from flood,
                           theft recovery or salvage loss?
                         </label>
@@ -1868,7 +1936,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Has your car ever been used as a taxi, driving school
                           car or for law enforcement purposes?
                         </label>
@@ -1909,7 +1977,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Has the odometer ever been changed?
                         </label>
                         <div className="flex gap-4">
@@ -1947,7 +2015,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div>
-                        <label className="label mb-3 block">
+                        <label className="label mb-1 block">
                           Has your vehicle ever been in a reported accident?
                         </label>
                         <div className="flex gap-4">
@@ -2079,15 +2147,14 @@ const MakeModelFlow = () => {
                       </Button>
                       <Button
                         type="submit"
-                        className={`flex-1 ${
-                          !watchRunsAndDrives ||
+                        className={`flex-1 ${!watchRunsAndDrives ||
                           !watchHasFloodTheftSalvage ||
                           !watchHasTaxiDrivingSchoolLawEnforcement ||
                           !watchOdometerChanged ||
                           !watchReportedAccident
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                          }`}
                         icon={ArrowRight}
                         iconPosition="right"
                         id="submit-additional-questions-button"
@@ -2101,19 +2168,19 @@ const MakeModelFlow = () => {
                         style={{
                           background:
                             !watchRunsAndDrives ||
-                            !watchHasFloodTheftSalvage ||
-                            !watchHasTaxiDrivingSchoolLawEnforcement ||
-                            !watchOdometerChanged ||
-                            !watchReportedAccident
+                              !watchHasFloodTheftSalvage ||
+                              !watchHasTaxiDrivingSchoolLawEnforcement ||
+                              !watchOdometerChanged ||
+                              !watchReportedAccident
                               ? "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)"
                               : "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)",
                           color: "#FFFFFF",
                           borderColor:
                             !watchRunsAndDrives ||
-                            !watchHasFloodTheftSalvage ||
-                            !watchHasTaxiDrivingSchoolLawEnforcement ||
-                            !watchOdometerChanged ||
-                            !watchReportedAccident
+                              !watchHasFloodTheftSalvage ||
+                              !watchHasTaxiDrivingSchoolLawEnforcement ||
+                              !watchOdometerChanged ||
+                              !watchReportedAccident
                               ? "#9ca3af"
                               : "#000000",
                         }}
@@ -2171,7 +2238,7 @@ const MakeModelFlow = () => {
                 </motion.div>
               </div>
             )}
-            
+
             {step === 4 && (
               <motion.div
                 initial={{ opacity: 0, x: -30, scale: 0.95 }}
@@ -2338,10 +2405,10 @@ const MakeModelFlow = () => {
                               </a>
 
                               <div id="cars-purchased">
-                              <span className="wbac-font">
+                                <span className="wbac-font">
                                   <span className="big-number">430,000+</span>cars purchased
-                              </span>
-                          </div>
+                                </span>
+                              </div>
                             </div>
                           </div>
 
@@ -2422,7 +2489,7 @@ const MakeModelFlow = () => {
                     {/* Calendar Section - Only if vehicle DOES run */}
                     {vehicleData?.runsAndDrives !== "No" && (
                       <div
-                        className="rounded-3xl px-6 pb-6 pt-0 md:p-10 md:pt-10 transition-all duration-500 w-full calendar-container-mobile"
+                        className="rounded-3xl px-6 pb-6 pt-0 md:p-6 md:pt-6 transition-all duration-500 w-full calendar-container-mobile"
                         style={{
                           background: "rgba(255, 255, 255, 0.75)",
                           backdropFilter: "blur(40px)",
@@ -2477,11 +2544,11 @@ const MakeModelFlow = () => {
                               city: appointmentData.city || "",
                               stateZip: appointmentData.stateZip || "",
                             };
-                            
+
                             // Store appointment data and show OTP modal
                             setPendingAppointmentData(slotData);
                             setIsSendingOTP(true);
-                            
+
                             // Simulate sending OTP code (in production, this would be an API call)
                             // TODO: Replace with actual API call to send OTP
                             setTimeout(() => {
@@ -2523,7 +2590,7 @@ const MakeModelFlow = () => {
                         )}
 
                         {/* Appointment Modal */}
-                        {branchesHoursSelected !== null && (<AppointmentModal 
+                        {branchesHoursSelected !== null && (<AppointmentModal
                           branchesHours={branchesHoursSelected}
                           vehicleData={vehicleData}
                           isOpen={isModalOpen}
@@ -2558,10 +2625,10 @@ const MakeModelFlow = () => {
                                     // OTP verified successfully
                                     // Confirm the appointment
                                     handleAppointmentConfirm(pendingAppointmentData);
-                                    
+
                                     // Update appointment info and track analytics
                                     updateAppointmentInfo(pendingAppointmentData);
-                                    
+
                                     // Track appointment confirmation for analytics
                                     trackAppointmentConfirm({
                                       date: pendingAppointmentData.date,
@@ -2569,16 +2636,16 @@ const MakeModelFlow = () => {
                                       location: pendingAppointmentData.location,
                                       locationId: pendingAppointmentData.locationId,
                                     });
-                                    
+
                                     // Close OTP modal
                                     setShowOTPModal(false);
                                     setPendingAppointmentData(null);
-                                    
+
                                     // Navigate to confirmation page
                                     setTimeout(() => {
                                       navigate("/valuation/confirmation", { replace: true });
                                     }, 100);
-                                    
+
                                     resolve();
                                   } else {
                                     reject(new Error("Invalid code. Please try again."));

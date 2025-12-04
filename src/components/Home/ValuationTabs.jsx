@@ -42,14 +42,14 @@ const ValuationTabs = ({
   const [plateState, setPlateState] = useState("");
 
   useEffect(() => {
-    if(years.length === 0){
+    if (years.length === 0) {
       getVehicleYears().then(yearsData => {
         setYears(yearsData.map(year => year.toString()));
       }).catch(error => {
         console.error("Error fetching years:", error);
       });
     }
-    
+
   }, []);
 
   const loadMakes = async (year) => {
@@ -58,11 +58,11 @@ const ValuationTabs = ({
   };
 
   const loadModels = async (make) => {
-    if(!selectedYear || !make){
+    if (!selectedYear || !make) {
       setModels([]);
       return;
     }
-    const modelsData = await getModelsByMake(selectedYear,make);
+    const modelsData = await getModelsByMake(selectedYear, make);
     setModels(modelsData);
   };
 
@@ -89,7 +89,7 @@ const ValuationTabs = ({
       console.log("---- rps ---", rps);
       // localStorage.setItem("customerJourneyId", rps);
       // navigate(`/valuation/details/?uid=${rps.customerJourneyId}`);
-      
+
     }).catch(error => {
       console.error("Error Create customer journey by vin:", error);
     });
@@ -118,32 +118,31 @@ const ValuationTabs = ({
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedYear ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedYear ? "scale-110" : ""
+                      }`}
                     style={
                       selectedYear
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(239, 68, 68, 0.6), 0 6px 24px 0 rgba(239, 68, 68, 0.5), 0 0 0 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(239, 68, 68, 0.6), 0 6px 24px 0 rgba(239, 68, 68, 0.5), 0 0 0 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(239, 68, 68, 0.4), 0 4px 16px 0 rgba(239, 68, 68, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(239, 68, 68, 0.4), 0 4px 16px 0 rgba(239, 68, 68, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -198,38 +197,37 @@ const ValuationTabs = ({
                     />
                   </div>
                 </div>
-                
+
               </div>
 
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedMake ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedMake ? "scale-110" : ""
+                      }`}
                     style={
                       selectedMake
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(234, 179, 8, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(250, 204, 21, 0.6), 0 6px 24px 0 rgba(250, 204, 21, 0.5), 0 0 0 4px rgba(250, 204, 21, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(234, 179, 8, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(250, 204, 21, 0.6), 0 6px 24px 0 rgba(250, 204, 21, 0.5), 0 0 0 4px rgba(250, 204, 21, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(250, 204, 21, 0.9), rgba(234, 179, 8, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(250, 204, 21, 0.4), 0 4px 16px 0 rgba(250, 204, 21, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(250, 204, 21, 0.9), rgba(234, 179, 8, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(250, 204, 21, 0.4), 0 4px 16px 0 rgba(250, 204, 21, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -284,38 +282,37 @@ const ValuationTabs = ({
                     />
                   </div>
                 </div>
-                
+
               </div>
 
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedModel ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedModel ? "scale-110" : ""
+                      }`}
                     style={
                       selectedModel
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(34, 197, 94, 0.6), 0 6px 24px 0 rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(34, 197, 94, 0.6), 0 6px 24px 0 rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(34, 197, 94, 0.4), 0 4px 16px 0 rgba(34, 197, 94, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(34, 197, 94, 0.4), 0 4px 16px 0 rgba(34, 197, 94, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -518,8 +515,8 @@ const ValuationTabs = ({
   );
 
   return (
-    <section className="bg-gray-100 pt-0 pb-0 md:pt-8 pb-1">
-      <div className="section-container md:mt-2 relative z-20">
+    <section className="bg-gray-100 pt-0 pb-0">
+      <div className="section-container !pt-4 !pb-4 md:!pt-6 md:!pb-6 relative z-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -548,7 +545,7 @@ const ValuationTabs = ({
               </p>
             </div>
           )}
-          <div className="p-4 md:p-8 lg:p-12">
+          <div className="p-4 md:p-6 lg:p-8">
             {!hideHeaderAndTabs ? (
               <Tabs
                 activeTab={activeTab}
