@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
   }, []);
   
   // Hide header and footer when in valuation flow after step 1
-  // Step 1 is /valuation, steps 2+ are /valuation/details, /valuation/condition, etc.
+  // Step 1 is /valuation, steps 2+ are /valuation/vehicledetails, /valuation/vehiclecondition, etc.
   const isValuationFlowAfterStep1 = 
     location.pathname.startsWith("/valuation/") && 
     location.pathname !== "/valuation";

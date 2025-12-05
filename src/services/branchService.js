@@ -20,6 +20,21 @@ export const getBranches = async (zipCode, limit, type, retries = 3) => {
   }
 };
 
+export const getBrancheById = async (idBranch, retries = 3) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    const response = await httpClient.get(`http://localhost:5001/api/content/branches/${idBranch}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Get branches error:', error);
+    if (retries === 0) return [];
+    return getBrancheById(idBranch, retries - 1);
+  }
+};
+
 export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId, retries = 3) => {
   try {
     const token = sessionStorage.getItem('token');

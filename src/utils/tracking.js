@@ -47,7 +47,7 @@ export const pushToDataLayer = (eventName, eventData = {}) => {
  * Track a page view for GTM and GA4
  * This should be called whenever the route changes
  *
- * @param {string} pagePath - The URL path (e.g., '/valuation/details')
+ * @param {string} pagePath - The URL path (e.g., '/valuation/vehicledetails')
  * @param {string} pageTitle - Descriptive page title (e.g., 'Valuation - Vehicle Details')
  * @param {Object} additionalData - Additional data to include in the page view
  */
@@ -85,8 +85,8 @@ export const trackPageView = (pagePath, pageTitle, additionalData = {}) => {
 export const trackValuationStep = (step, stepName, vehicleData = {}) => {
   const stepPaths = {
     1: "/valuation",
-    2: "/valuation/details",
-    3: "/valuation/condition",
+    2: "/valuation/vehicledetails",
+    3: "/valuation/vehiclecondition",
     4: "/valuation/appointment",
   };
 

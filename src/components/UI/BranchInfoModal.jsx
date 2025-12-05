@@ -58,31 +58,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
     },
   };
 
-  const data = branchData[branch.id] || {
-    name: branch.name,
-    state: "NJ",
-    address: "Address TBD",
-    suite: "",
-    city: `${branch.name}, NJ`,
-    phone: branch.phone,
-    phoneRaw: branch.phone?.replace(/\D/g, ""),
-    email: `${branch.id}.nj@webuyanycarusa.com`,
-    mapUrl: "https://maps.google.com/maps",
-    webPage: `/sell-car/new-jersey-nj/${branch.id}`,
-    image: "",
-    hours: {
-      Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-      Tuesday: "Closed",
-      Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-      Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
-      Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-      Saturday: "9a.m. - 1p.m., 2p.m. - 6p.m.",
-      Sunday: "Closed",
-    },
-    description: `We Buy Any Car ${branch.name} branch information.`,
-    areasServed: `${branch.name} and surrounding areas`,
-    mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.5!2d-74.3083!3d40.688244!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQxJzE3LjciTiA3NMKwMTgnMjkuOSJX!5e0!3m2!1sen!2sus!4v1234567890",
-  };
+  const data = branch;
 
   return (
     <AnimatePresence>

@@ -5,8 +5,8 @@ import { useLocation } from "react-router-dom";
 
 const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   const location = useLocation();
-  // Check if we're on step 2 (Series & Body) - URL is /valuation/details
-  const isStep2 = location.pathname.indexOf("/valuation/details") >= 0;  
+  // Check if we're on step 2 (Series & Body) - URL is /valuation/vehicledetails
+  const isStep2 = location.pathname.indexOf("/valuation/vehicledetails") >= 0;  
   const [imageLoading, setImageLoading] = useState(false);
   const [imageToShow, setImageToShow] = useState(imageUrl);
 

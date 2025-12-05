@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -28,7 +28,7 @@ import ValuationTabs from "../components/Home/ValuationTabs";
 import { CustomerDetailJourney, GetCustomerJourney, getImageVehicle, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
 import { saveValuationVehicle } from "../services/valuationService";
 import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
-import { cleanObject, formatPhone, formatUSD } from "../utils/helpers";
+import { cleanObject, convertTo12Hour, formatPhone, formatUSD, getDayName, getNext12Days } from "../utils/helpers";
 import { createAppointment } from "../services/appointmentService";
 import { allowedZips } from "../utils/model";
 
@@ -42,8 +42,10 @@ const MakeModelFlow = () => {
   const [customerJourneyData, setCustomerJourneyData] = useState(null);
   const [branchesData, setBranchesData] = useState([]);
   const [branchesHours, setBranchesHours] = useState([]);
+  const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
- 
+  const [SerieSelected, setSerieSelected] = useState("");
+  const { uid } = useParams();
   const {
     updateVehicleData,
     vehicleData,
@@ -54,8 +56,9 @@ const MakeModelFlow = () => {
   } = useApp();
 
   useEffect(() => {
-    const customerJourneyId = new URLSearchParams(window.location.search).get("uid") || localStorage.getItem("customerJourneyId");
+    const customerJourneyId = uid || localStorage.getItem("customerJourneyId");
     setCustomerJourneyId(customerJourneyId);
+    localStorage.setItem("customerJourneyId", customerJourneyId);
     if(!customerJourneyId){
       navigate("/");
     }else{
@@ -64,14 +67,15 @@ const MakeModelFlow = () => {
           setCustomerJourneyData(customerJourney);
           const { year, make, model } = customerJourney;
           if(customerJourney.zipCode != "" && window.location.pathname.indexOf("/valuation/appointment") >= 0){
-            getBranches(customerJourney.zipCode, 1, "Physical").then(branches => {
-              sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
-              setBranchesData(branches.branchLocations);
-            }).catch(error => {
-              console.error("Error getting branches:", error);
-            });
+           handleVehicleConditionSubmit(getValues());
+            // getBranches(customerJourney.zipCode, 1, "Physical").then(branches => {
+            //   sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
+            //   setBranchesData(branches.branchLocations);
+            // }).catch(error => {
+            //   console.error("Error getting branches:", error);
+            // });
           }
-          
+
           getSeries(year,model,make).then(series => {
             updateVehicleData({
               year: year,
@@ -79,10 +83,33 @@ const MakeModelFlow = () => {
               model: model,
             });
             setListSeries(series);
+            setSerieSelected(series[0].series);
+            setValue("series", series[0].series);
+            
+            // watchSeries || !watchBodyType
+
+            if(window.location.pathname.indexOf("/valuation/vehicledetails") >= 0){
+
+              const dat = series.filter(item => item.series === series[0].series);
+              setListBodyTypes(dat);      
+              if(dat.length === 1){
+                setValue("bodyType", dat[0].bodystyle);
+                setBodyTypeSelected(dat[0].bodystyle);
+              }                  
+
+              if([...new Set(series.map(item => (item.series)))].length === 1 && dat.length === 1){
+                handleSeriesBodySubmit({series:series[0].series,bodyType:dat[0].bodystyle});
+              }
+
+            }
+
+            
+
             loadImage(series[0].imageUrl);
           }).catch(error => {
             console.error("Error getting series:", error);
           });
+          
         }
       }).catch(error => {
         console.error("Error getting customer journey:", error);
@@ -110,10 +137,10 @@ const MakeModelFlow = () => {
     if (path === "/valuation/appointment" || path.includes("/appointment")) {
       return 4; // Step 4: Appointment Scheduling
     }
-    if (path === "/valuation/condition" || path.includes("/condition")) {
+    if (path === "/valuation/vehiclecondition" || path.includes("/vehiclecondition")) {
       return 3; // Step 3: Vehicle Condition
     }
-    if (path === "/valuation/details" || path.includes("/details")) {
+    if (path === "/valuation/vehicledetails" || path.includes("/vehicledetails")) {
       return 2; // Step 2: Series & Body
     }
     if (path === "/valuation" || path === "/sell-by-make-model") {
@@ -145,9 +172,9 @@ const MakeModelFlow = () => {
     // Determine step from URL path - each step has a distinct URL
     if (path === "/valuation/appointment" || path.includes("/appointment")) {
       newStep = 4;
-    } else if (path === "/valuation/condition" || path.includes("/condition")) {
+    } else if (path === "/valuation/vehiclecondition" || path.includes("/condition")) {
       newStep = 3;
-    } else if (path === "/valuation/details" || path.includes("/details")) {
+    } else if (path === "/valuation/vehicledetails" || path.includes("/details")) {
       newStep = 2;
     } else if (path === "/valuation" || path === "/sell-by-make-model") {
       newStep = 1;
@@ -182,18 +209,23 @@ const MakeModelFlow = () => {
   // Each step has a unique URL for better analytics and direct access
   const updateStepAndNavigate = (newStep) => {
     // Map step to URL path - each step has a distinct URL
+    console.log("---- customerJourneyId ---", );
+    const id = customerJourneyId || localStorage.getItem("customerJourneyId");
     const stepPaths = {
-      1: `/valuation?uid=${customerJourneyId}`,
-      2: `/valuation/details?uid=${customerJourneyId}`,
-      3: `/valuation/condition?uid=${customerJourneyId}`,
-      4: `/valuation/appointment?uid=${customerJourneyId}`,
+      1: `/valuation/${id}`,
+      2: `/valuation/vehicledetails/${id}`,
+      3: `/valuation/vehiclecondition/${id}`,
+      4: `/valuation/appointment/${id}`,
     };
 
 
     const targetPath = stepPaths[newStep] || "/valuation";
+    
 
     // Only navigate if we're not already on the correct path
     // This prevents unnecessary navigation and GTM events
+    console.log("---- location.pathname ---", location.pathname);
+    console.log("---- targetPath ---", targetPath);
     if (location.pathname !== targetPath) {
       setStep(newStep);
       navigate(targetPath, { replace: true });
@@ -639,12 +671,11 @@ const MakeModelFlow = () => {
       vehicle_model: data.model,
     });
 
-    // Navigate to step 2 (Series & Body) - URL changes to /valuation/details
+    // Navigate to step 2 (Series & Body) - URL changes to /valuation/vehicledetails
     updateStepAndNavigate(2);
   };
 
   const handleSeriesBodySubmit = (data) => {
-    
     // Track form submission for analytics
     trackFormSubmit("series_body", {
       vehicle_series: data.series || null,
@@ -657,12 +688,13 @@ const MakeModelFlow = () => {
     }, customerJourneyId).then(response => {
       const cleanResponse = cleanObject(response);
       updateVehicleData({...vehicleData, ...cleanResponse});  
+      setStep(3);
       updateStepAndNavigate(3);
     }).catch(error => {
       console.error("Error updating customer journey:", error);
     });
 
-    // Navigate to step 3 (Vehicle Condition) - URL changes to /valuation/condition
+    // Navigate to step 3 (Vehicle Condition) - URL changes to /valuation/vehiclecondition
     
   };
 
@@ -696,6 +728,7 @@ const MakeModelFlow = () => {
   };
 
   const handleVehicleConditionSubmit = (data) => {
+    
     // If runsAndDrives is "No", or hasIssues is "Yes", or hasAccident is "Yes", show additional questions
     if (
       data.runsAndDrives === "No" ||
@@ -733,9 +766,9 @@ const MakeModelFlow = () => {
       });
       
       getBranches(data.zipCode, 1, "Physical").then(branches => {
-        sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
-        setBranchesData(branches.branchLocations);
-        updateStepAndNavigate(4);
+        // sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
+        // setBranchesData(branches.branchLocations);
+        // updateStepAndNavigate(4);
       }).catch(error => {
         console.error("Error getting branches:", error);
       });
@@ -747,6 +780,7 @@ const MakeModelFlow = () => {
       // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
       
     }
+
 
     UpdateCustomerJourney({
       "mileage": data.odometer,
@@ -762,8 +796,88 @@ const MakeModelFlow = () => {
     }, customerJourneyId).then(response => {
       const cleanData = cleanObject(response);
       getBranchesByCustomerVehicle(data.zipCode, response.customerVehicleId).then(branchesHours => {
+        const branchesHoursData = branchesHours.physical.map(branch => {
+          let obj = [];
+          const days = getNext12Days();
+          for(var i = 0; i < days.length; i++){
+            const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
+            const objData =    {
+              closeTime: fechaHora ? convertTo12Hour(fechaHora[fechaHora.length - 1].timeSlot24Hour) : "",
+              date: days[i],
+              dayOfWeek: getDayName(days[i]),
+              isExceptional: false,
+              openTime: fechaHora ? convertTo12Hour(fechaHora[0].timeSlot24Hour) : "",
+              type: fechaHora ? "open" : "closed"
+            };    
+            if(objData.type === "open"){
+              obj.push(objData);
+              obj.push({...objData, openTime: "01:00 PM"});
+            }else{
+              obj.push(objData);
+            }
+          }
+
+          return {
+              address1: "",
+              address2: "",
+              branchEmail: "",
+              branchId: branch.branchId,
+              branchManagerName: "",
+              branchName: branch.branchName,
+              branchPhone: branch.telephone,
+              city: branch.city,
+              distanceMiles: branch.distanceInMiles,
+              latitude: "",
+              longitude: "",
+              type:"branch",
+              operationHours: obj
+          }
+        });
+
+      if(branchesHours.mobile.branchId){
+        const branch = branchesHours.mobile;
+        let obj = [];
+          const days = getNext12Days();
+          for(var i = 0; i < days.length; i++){
+            const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
+            const objData =    {
+              closeTime: "08:00 PM",
+              date: days[i],
+              dayOfWeek: getDayName(days[i]),
+              isExceptional: false,
+              openTime: "09:00 AM",
+              type: "open"
+            };    
+            if(objData.type === "open"){
+              obj.push(objData);
+              obj.push({...objData, openTime: "01:00 PM"});
+            }else{
+              obj.push(objData);
+            }
+          }
+          
+          branchesHoursData.unshift({
+            address1: "",
+            address2: "",
+            branchEmail: "",
+            branchId: branch.branchId,
+            branchManagerName: "",
+            branchName: branch.branchName,
+            branchPhone: branch.telephone,
+            city: branch.city,
+            distanceMiles: branch.distanceInMiles,
+            latitude: "",
+            longitude: "",
+            type:"home",
+            operationHours: obj
+        });
+      }
+        
+        setBranchesData(branchesHoursData);
+
         sessionStorage.setItem("branchesHours", JSON.stringify(branchesHours));
         setBranchesHours(branchesHours);
+        updateStepAndNavigate(4);
       }).catch(error => {
         console.error("Error getting branches:", error);
       });
@@ -918,7 +1032,11 @@ const MakeModelFlow = () => {
 
   const handleSlotClick = (slotData) => {
     const brchHours = branchesHours.length > 0 ? branchesHours : JSON.parse(sessionStorage.getItem("branchesHours"));
-    const brnc = brchHours.physical.find(branch => branch.branchId === slotData.locationId);
+    console.log("---- brchHours ---", brchHours);
+    console.log("---- slotData ---", slotData);
+    const findP = brchHours.physical.find(branch => branch.branchId === slotData.locationId);
+    const findM = brchHours.mobile.branchId === slotData.locationId ? brchHours.mobile : null;
+    const brnc = findP ? findP : findM;
     const timeSlot = brnc.timeSlots[`${slotData.date}T00:00:00`];
     setBranchesHoursSelected(timeSlot ? timeSlot : null);
     setSelectedSlot(slotData);
@@ -978,8 +1096,7 @@ const MakeModelFlow = () => {
         branchInfo: branchSelect,
       });
       updateAppointmentInfo(selectedAppointment);
-      console.log("---- createAppointment response ---", response);
-      navigate("/valuation/confirmation", { replace: true });
+      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
     }).catch(error => {
       updateVehicleData({
         ...vehicleData,
@@ -987,15 +1104,9 @@ const MakeModelFlow = () => {
       });
       updateAppointmentInfo(selectedAppointment);
       alert("Error creating appointment");
-      navigate("/valuation/confirmation", { replace: true });
+      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
       console.error("Error creating appointment:", error);
     });
-
-    
-      
-    
-
-    
 
   };
 
@@ -1041,7 +1152,7 @@ const MakeModelFlow = () => {
           updateVehicleData(vehicleDetails);
           // Update step immediately before navigation to prevent showing step 1 again
           setStep(2);
-          navigate("/valuation/details");
+          navigate("/valuation/vehicledetails");
         }}
         onVinSubmit={(vehicleInfo) => {
           updateVehicleData(vehicleInfo);
@@ -1328,30 +1439,36 @@ const MakeModelFlow = () => {
                     className="space-y-7"
                   >
                     {/* Added unique IDs for automation testing */}
+                    
                     <Select
                       label="Select Series"
                       options={ listSeries[0] ? [...new Set(listSeries.map(item => (item.series)))] : [] }
                       placeholder="Select Series"
                       error={errors.series?.message}
-                      disabled={listSeries.length === 0}
+                      value={SerieSelected}
+                      disabled={listSeries.length === 0 || [...new Set(listSeries.map(item => (item.series)))].length === 1}
                       id="series-select"
                       {...register("series")}
                       onChange={(e) => {
+                        setSerieSelected(e.target.value);
                         if(e.target.value !== ""){
                           setValue("series", e.target.value);
                         }else{
                           setValue("series", "");
                         }
+                        
                         setListBodyTypes( e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));                        
                       }}
                     />
+
 
                     <Select
                       label="Select Body Type ---"
                       options={listBodyTypes[0] ? listBodyTypes.map(item => (item.bodystyle)) : []}
                       placeholder="Select body type ---"
                       error={errors.bodyType?.message}
-                      disabled={listBodyTypes.length === 0}
+                      value={BodyTypeSelected}
+                      disabled={listBodyTypes.length === 0 || listBodyTypes.length === 1}
                       id="body-type-select"
                       {...register("bodyType", {
                         required: "Body type is required",
@@ -1364,6 +1481,7 @@ const MakeModelFlow = () => {
                         }else{
                           setValue("bodyType", "");
                         }
+                        setBodyTypeSelected(newBodyType);
                         const valueImage = listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "";
                         loadImage(valueImage)
                       }}
@@ -1398,7 +1516,6 @@ const MakeModelFlow = () => {
                 </div>
               </motion.div>
             )}
-
             {step === 3 && !showAdditionalQuestions && (
               <motion.div
                 initial={{ opacity: 0, x: -30, scale: 0.95 }}
@@ -2603,7 +2720,7 @@ const MakeModelFlow = () => {
                                     
                                     // Navigate to confirmation page
                                     setTimeout(() => {
-                                      navigate("/valuation/confirmation", { replace: true });
+                                      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
                                     }, 100);
                                     
                                     resolve();

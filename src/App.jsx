@@ -25,21 +25,12 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/sell-by-vin" element={<VINFlow />} />
-              <Route path="/valuation" element={<MakeModelFlow />} />
-              <Route
-                path="/sell-by-make-model"
-                element={<Navigate to="/valuation" replace />}
-              />
-              <Route path="/valuation/details" element={<MakeModelFlow />} />
-              <Route path="/valuation/condition" element={<MakeModelFlow />} />
-              <Route
-                path="/valuation/appointment"
-                element={<MakeModelFlow />}
-              />
-              <Route
-                path="/valuation/confirmation"
-                element={<Confirmation />}
-              />
+              <Route path="/valuation/:uid" element={<MakeModelFlow />} />
+              <Route path="/sell-by-make-model" element={<Navigate to="/valuation" replace />} />
+              <Route path="/valuation/vehicledetails/:uid" element={<MakeModelFlow />} />
+              <Route path="/valuation/vehiclecondition/:uid" element={<MakeModelFlow />} />
+              <Route path="/valuation/appointment/:uid" element={<MakeModelFlow />} />
+              <Route path="/valuation/confirmation/:uid" element={<Confirmation />} />
               <Route path="/confirmation" element={<Confirmation />} />
               {/* Legacy routes stay available to honor existing inbound links. */}
               <Route path="/sell-by-plate" element={<LicensePlateFlow />} />

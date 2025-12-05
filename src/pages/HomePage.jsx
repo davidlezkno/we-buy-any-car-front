@@ -25,10 +25,10 @@ const HomePage = () => {
       createCustomerJourney(year,make,model,1).then(rps => {
         localStorage.setItem("customerJourneyId", rps.customerJourneyId);
         updateVehicleData(vehicleDetails);
-        navigate(`/valuation/details/?uid=${rps.customerJourneyId}`);
-        // navigate(`/valuation/details`);
+        navigate(`/valuation/vehicledetails/${rps.customerJourneyId}`);
+        // navigate(`/valuation/vehicledetails`);
       }).catch(error => {
-        navigate("/valuation/details");
+        navigate("/valuation/vehicledetails");
       }).catch(error => {
         console.error("Error Create customer journey:", error);
       });

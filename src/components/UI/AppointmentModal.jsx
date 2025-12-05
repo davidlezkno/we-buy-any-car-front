@@ -5,6 +5,7 @@ import Button from "./Button";
 import Input from "./Input";
 import OTPModal from "./OTPModal";
 import { random3Digits } from "../../utils/helpers";
+import { sendSmS } from "../../services/appointmentService";
 
 const AppointmentModal = ({ 
   isOpen, 
@@ -140,6 +141,11 @@ const AppointmentModal = ({
   const handleConfirm = async () => {
     
     if (validateForm()) {
+      console.log("---- vehicleData.id ---", vehicleData);
+      console.log("---- formData.telephone ---", formData);
+      sendSmS(vehicleData.customerVehicleId, vehicleData.optionalPhoneNumber, "Your appointment has been booked successfully. Please use the following code to verify your appointment: " + random3Digits(6), 3).then(res => {
+        console.log("---- res sendSMS ---", res);
+      });
       
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);

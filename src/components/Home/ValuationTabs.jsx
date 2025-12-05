@@ -87,7 +87,7 @@ const ValuationTabs = ({
 
     createCustomerJourneyByVin(vinValue).then(rps => {
       localStorage.setItem("customerJourneyId", rps.customerJourneyId);
-      navigate(`/valuation/details/?uid=${rps.customerJourneyId}`);
+      navigate(`/valuation/vehicledetails/${rps.customerJourneyId}`);
       
     }).catch(error => {
       console.error("Error Create customer journey by vin:", error);

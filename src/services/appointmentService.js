@@ -80,6 +80,39 @@ export const createAppointment = async (appointmentData, retries = 3) => {
   }
 };
 
+export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 3) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await httpClient.post(`http://localhost:5001/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber }, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Get makes error:', error);
+    if (retries === 0) throw error;
+    return createOnTime(customerVehicleId, branchId, targetPhoneNumber = "", retries - 1);
+  }
+};
+
+
+export const sendSmS  = async (customerVehicleId, recipient, message = "", retries = 3) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await httpClient.post(`http://localhost:5001/api/Sms/send`, { customerVehicleId, recipient, message }, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Get makes error:', error);
+    if (retries === 0) throw error;
+    return sendSmS(customerVehicleId, recipient, message = "", retries - 1);
+  }
+};
+
 /**
  * Book an appointment
  * @param {Object} appointmentData - Appointment details

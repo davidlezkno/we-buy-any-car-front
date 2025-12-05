@@ -23,6 +23,7 @@ const Confirmation = () => {
   const trustpilotWidgetRef = useRef(null);
   const [branchInfo, setBranchInfo] = useState(null);
   useEffect(() => {
+    console.log("valuation/confirmation ---- vehicleData ----", vehicleData);
     if (vehicleData) {
       const branch = vehicleData.branchInfo;
       const hoursData = {};

@@ -36,7 +36,11 @@ export const getDayName = (dateString) => {
     "Saturday"   // 6
   ];
 
-  return days[date.getDay()];
+  return days[date.getDay() + 1];
+}
+
+export const getGoogleMapsEmbedUrl = (lat, lng) => {
+  return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v${Date.now()}`;
 }
 
 export const getPeriod = (time) => {
@@ -51,8 +55,26 @@ export const getPeriod = (time) => {
 
   // Determinar periodo
   if (hour >= 5 && hour < 12) return "Morning";    
-  if (hour >= 12 && hour < 20) return "Afternoon"; 
+  if (hour >= 12 && hour < 19) return "Afternoon"; 
   return "Evening";                                
+}
+
+export const getNext12Days = () => {
+  const dates = [];
+  const today = new Date();
+
+  for (let i = 0; i <= 7; i++) {
+    const newDate = new Date();
+    newDate.setDate(today.getDate() + i);
+
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, "0");
+    const day = String(newDate.getDate()).padStart(2, "0");
+
+    dates.push(`${year}-${month}-${day}`);
+  }
+
+  return dates;
 }
 
 export const random3Digits = () => {

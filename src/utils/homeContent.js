@@ -115,7 +115,7 @@ export const PROCESS_STEPS = [
   {
     label: "Book an Appointment",
     image: "Content/Images/Appointment.png",
-    alt: "Book Appointment",
+    alt: "Book Appointment ll",
   },
   {
     label: "Immediate Secure Payment",

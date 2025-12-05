@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
-import { getPeriod } from "../../utils/helpers";
+import { getGoogleMapsEmbedUrl, getPeriod } from "../../utils/helpers";
+import { getBrancheById } from "../../services/branchService";
 
 const CalendarScheduler = ({
   onTimeSlotSelect,
@@ -29,6 +30,7 @@ const CalendarScheduler = ({
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
+
     if(branchesData.length > 0 ){
 
       const weekDays = [
@@ -41,11 +43,11 @@ const CalendarScheduler = ({
         'Saturday'
       ];
 
+      
       const locs = branchesData.map(branch => {
         let obj = {};
         for(let i = 0; i < branch.operationHours.length; i++){
           const hour = branch.operationHours[i];
-
           if(hour.type === "open"){
             obj[weekDays.indexOf(hour.dayOfWeek)] = obj[weekDays.indexOf(hour.dayOfWeek)] ? {
               Morning: obj[weekDays.indexOf(hour.dayOfWeek)].Morning || getPeriod(hour.openTime) == "Morning",
@@ -65,11 +67,12 @@ const CalendarScheduler = ({
           name:  branch.branchName,
           location: branch.address1,
           phone: branch.branchPhone,
-          type: "branch",
+          type: branch.type,
           availability: obj,
         }
       });
 
+      console.log(" ==== locs ==== ", locs);
 
       setLocations(locs);
     }
@@ -252,6 +255,7 @@ const CalendarScheduler = ({
   // ];
 
   const isSlotAvailable = (locationId, dayIndex, timeSlot) => {
+    
     const location = locations.find((loc) => loc.id === locationId);
     if (!location) return false;
     const dayAvailability = location.availability[dayIndex.toString()];
@@ -260,9 +264,13 @@ const CalendarScheduler = ({
   };
 
   const handleSlotClick = (locationId, date, timeSlot) => {
+    console.log("---- locationId ---", locationId);
+    console.log("---- date ---", date);
+    console.log("---- timeSlot ---", timeSlot);
     if (!isSlotAvailable(locationId, date.dayIndex, timeSlot)) return;
 
     const location = locations.find((loc) => loc.id === locationId);
+    
     const slotData = {
       locationId,
       location: location?.name || "",
@@ -273,6 +281,7 @@ const CalendarScheduler = ({
     };
 
     // If custom callback exists, use it (for opening modal)
+    
     if (onSlotClick) {
       onSlotClick(slotData);
     } else if (onTimeSlotSelect) {
@@ -396,6 +405,52 @@ const CalendarScheduler = ({
     setSelectedLocationMobile(locationId);
     setSelectedDateMobile("");
     setSelectedTimeMobile("");
+  };
+
+  const loadDataBranch = (location) => {
+    console.log("---- location ---", location);
+    getBrancheById(location.id).then(response => {
+      const res = response.branchLocation;
+      const obj = {};
+      console.log(res.operationHours);
+      for(let i = 0; i < res.operationHours.length; i++){
+        const hour = res.operationHours[i];
+        if(hour.type === "open"){
+          obj[hour.dayOfWeek] = obj[hour.dayOfWeek] ? `${obj[hour.dayOfWeek]}, ${hour.openTime} - ${hour.closeTime}` : `${hour.openTime} - ${hour.closeTime}`;
+        }else{
+          obj[hour.dayOfWeek] = "Closed";
+        }
+      }
+
+      const data = {
+        name: res.branchName,
+        state: res.city,
+        address: res.address1,
+        suite: "",
+        city: res.city,
+        phone: res.branchPhone,
+        phoneRaw: res.branchPhone,
+        email: res.branchEmail,
+        mapUrl: res.mapURL,
+        webPage: ``,
+        image: res.branchImageUrl,
+        hours: obj,
+        description: `We Buy Any Car ${res.branchName} branch information.`,
+        areasServed: `${res.branchName} and surrounding areas`,        
+        mapEmbedUrl: getGoogleMapsEmbedUrl( res.latitude, res.longitude )
+      };
+
+      setSelectedBranchForInfo(data)
+
+
+    });
+
+    // setSelectedBranchForInfo(location)
+
+    // const location = locations.find((loc) => loc.id === locationId);
+    // if (location) {
+    //   setBranchType(location.type);
+    // }
   };
 
   // Filter locations based on branch type
@@ -1148,7 +1203,7 @@ const CalendarScheduler = ({
                         </a>
                         {location.type === "branch" && (
                           <button
-                            onClick={() => setSelectedBranchForInfo(location)}
+                            onClick={() => loadDataBranch(location)}
                             className="text-xs text-gray-500 hover:text-gray-700 mt-1 underline"
                           >
                             Click for branch info
