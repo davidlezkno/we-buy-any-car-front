@@ -1075,10 +1075,8 @@ const MakeModelFlow = () => {
 
   const handleSlotClick = (slotData) => {
     const brchHours = branchesHours.length > 0 ? branchesHours : JSON.parse(sessionStorage.getItem("branchesHours"));
-    console.log("---- brchHours ---", brchHours);
-    console.log("---- slotData ---", slotData);
-    const findP = brchHours.physical.find(branch => branch.branchId === slotData.locationId);
-    const findM = brchHours.mobile.branchId === slotData.locationId ? brchHours.mobile : null;
+    const findP = brchHours?.physical?.find(branch => branch.branchId === slotData.locationId);
+    const findM = brchHours?.mobile?.branchId === slotData.locationId ? brchHours.mobile : null;
     const brnc = findP ? findP : findM;
     const timeSlot = brnc.timeSlots[`${slotData.date}T00:00:00`];
     setBranchesHoursSelected(timeSlot ? timeSlot : null);

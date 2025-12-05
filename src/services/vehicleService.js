@@ -291,7 +291,7 @@ export const getImageVehicle = async (externalUrl, retries = 3) => {
     };
     
     const response = await fetch(
-      `${API_BASE_URL}/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
+      `http://localhost:5001/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
       { headers }
     );
 
