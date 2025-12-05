@@ -12,8 +12,10 @@ import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
 import { getGoogleMapsEmbedUrl, getPeriod } from "../../utils/helpers";
 import { getBrancheById } from "../../services/branchService";
+import { weekDays } from "../../utils/model";
 
 const CalendarScheduler = ({
+  searchZip,
   onTimeSlotSelect,
   selectedDate,
   selectedTime,
@@ -33,15 +35,7 @@ const CalendarScheduler = ({
 
     if(branchesData.length > 0 ){
 
-      const weekDays = [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday'
-      ];
+      
 
       
       const locs = branchesData.map(branch => {
@@ -78,7 +72,17 @@ const CalendarScheduler = ({
     }
   }, [branchesData]);
   
-
+ 
+ 
+  const handleSearchByZip = (e) => {
+    e.preventDefault();
+    if (searchZip.trim()) {
+      // Branch search by ZIP code logic can be implemented here
+      // For now, this is a placeholder for future functionality
+      console.log("Branch search by ZIP not yet implemented:", searchZip);
+    }
+  };
+  
   // Generate dates for the next 7 days starting from dayOffset (for desktop view)
   const getDates = (offset = 0) => {
     const dates = [];
@@ -165,13 +169,7 @@ const CalendarScheduler = ({
   };
 
   const handleZipSearch = (e) => {
-    e.preventDefault();
-    // TODO: Implement ZIP code search functionality
-    // This would update the locations based on the ZIP code
-    if (zipCode && zipCode.length === 5) {
-      console.log("Searching for stores near ZIP:", zipCode);
-      // Here you would call findNearbyStores(zipCode) and update locations
-    }
+    searchZip(zipCode)
   };
   const timeSlots = ["Morning", "Afternoon", "Evening"];
 

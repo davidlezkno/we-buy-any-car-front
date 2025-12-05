@@ -160,6 +160,14 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
 
 export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 3) => {
   
+  if(newData.email === ""){
+    const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
+    newData = {
+      ...newData,
+      ...data
+    };
+  }
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {

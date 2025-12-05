@@ -16,6 +16,7 @@ const AppointmentModal = ({
   initialReceiveSMS = false, 
   vehicleData, 
   branchesHours }) => {
+
   
   const [step, setStep] = useState(1); 
   const [selectedTime, setSelectedTime] = useState({});
@@ -143,9 +144,11 @@ const AppointmentModal = ({
     if (validateForm()) {
       console.log("---- vehicleData.id ---", vehicleData);
       console.log("---- formData.telephone ---", formData);
-      sendSmS(vehicleData.customerVehicleId, vehicleData.optionalPhoneNumber, "Your appointment has been booked successfully. Please use the following code to verify your appointment: " + random3Digits(6), 3).then(res => {
-        console.log("---- res sendSMS ---", res);
-      });
+
+      
+      // sendSmS(vehicleData.customerVehicleId, vehicleData.optionalPhoneNumber, "Your appointment has been booked successfully. Please use the following code to verify your appointment: " + random3Digits(6), 3).then(res => {
+      //   console.log("---- res sendSMS ---", res);
+      // });
       
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -14,9 +14,15 @@ import {
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { trackPageView } from "../utils/tracking";
+import { GetCustomerJourney } from "../services/vehicleService";
+import { getBrancheById } from "../services/branchService";
+import { weekDays } from "../utils/model";
+import { getPeriod } from "../utils/helpers";
+
 
 const Confirmation = () => {
   const navigate = useNavigate();
+  const { uid } = useParams();
   const { vehicleData, userInfo, appointmentInfo } = useApp();
   const contentRef = useRef(null);
   const headerRef = useRef(null);
@@ -24,6 +30,40 @@ const Confirmation = () => {
   const [branchInfo, setBranchInfo] = useState(null);
   useEffect(() => {
     console.log("valuation/confirmation ---- vehicleData ----", vehicleData);
+    const customerJourneyId = uid || localStorage.getItem("customerJourneyId");
+    GetCustomerJourney(customerJourneyId).then(customerJourney => {
+      getBrancheById(customerJourney.closestBranchContactInfo.branchId).then(branchRps => {
+        const branch = branchRps.branchLocation;
+        let obj = {};
+        for(let i = 0; i < branch.operationHours.length; i++){
+          const hour = branch.operationHours[i];
+          if(hour.type === "open"){
+            obj[weekDays.indexOf(hour.dayOfWeek)] = obj[weekDays.indexOf(hour.dayOfWeek)] ? {
+              Morning: obj[weekDays.indexOf(hour.dayOfWeek)].Morning || getPeriod(hour.openTime) == "Morning",
+              Afternoon: obj[weekDays.indexOf(hour.dayOfWeek)].Afternoon || getPeriod(hour.openTime) == "Afternoon",
+              Evening: obj[weekDays.indexOf(hour.dayOfWeek)].Evening || getPeriod(hour.closeTime) == "Evening",
+            } : {
+              Morning: getPeriod(hour.openTime) == "Morning",
+              Afternoon: getPeriod(hour.openTime) == "Afternoon",
+              Evening: getPeriod(hour.closeTime) == "Evening",
+            };
+          }
+
+        }
+        setBranchInfo({
+          name: branch.branchName,
+          city: branch.city,
+          address: branch.address1,
+          fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
+          phone: branch.branchPhone,
+          email: branch.branchEmail,
+          manager: branch.branchManagerName,
+          hours: obj,
+        });
+        console.log("---- branch ---", branch);
+        
+      });
+    });
     if (vehicleData) {
       const branch = vehicleData.branchInfo;
       const hoursData = {};
@@ -32,7 +72,8 @@ const Confirmation = () => {
           hoursData[branch.operationHours[i].dayOfWeek] += ` - ${branch.operationHours[i].closeTime}`;
         }else{
           hoursData[branch.operationHours[i].dayOfWeek] = branch.operationHours[i].type == "open" ? branch.operationHours[i].openTime : "Closed";
-        }                
+        }         
+
       }
       setBranchInfo({
         name: branch.branchName,
@@ -43,15 +84,6 @@ const Confirmation = () => {
         email: branch.branchEmail,
         manager: branch.branchManagerName,
         hours: hoursData,
-        // {
-        //   Tuesday: "Closed",
-        //   Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        //   Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
-        //   Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        //   Saturday: "9a.m. - 12p.m., 1p.m. - 6p.m.",
-        //   Sunday: "Closed",
-        //   Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        // },
       });
       console.log("---- branchInfo ---", branchInfo);
     }
@@ -853,8 +885,8 @@ const Confirmation = () => {
                     <span className="font-semibold text-gray-700">Branch</span>
                     <span className="text-gray-900">
                       {appointmentInfo.location
-                        ? `${appointmentInfo.location} (${branchInfo.city})`
-                        : `${branchInfo.name} (${branchInfo.city})`}
+                        ? `${appointmentInfo.location} (${!branchInfo.city ? "NJ" : branchInfo.city})`
+                        : `${branchInfo.name} (${!branchInfo.city ? "NJ" : branchInfo.city})`}
                   </span>
                 </div>
                   <div className="flex justify-between items-center py-3 border-b border-gray-200">

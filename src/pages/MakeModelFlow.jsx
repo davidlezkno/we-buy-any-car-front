@@ -27,10 +27,11 @@ import OTPModal from "../components/UI/OTPModal";
 import ValuationTabs from "../components/Home/ValuationTabs";
 import { CustomerDetailJourney, GetCustomerJourney, getImageVehicle, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
 import { saveValuationVehicle } from "../services/valuationService";
-import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
+import { getBrancheById, getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
 import { cleanObject, convertTo12Hour, formatPhone, formatUSD, getDayName, getNext12Days } from "../utils/helpers";
 import { createAppointment } from "../services/appointmentService";
 import { allowedZips } from "../utils/model";
+import * as OTPAuth from "otpauth";
 
 const MakeModelFlow = () => {
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ const MakeModelFlow = () => {
   const [customerJourneyId, setCustomerJourneyId] = useState("");
   const [customerJourneyData, setCustomerJourneyData] = useState(null);
   const [branchesData, setBranchesData] = useState([]);
+  const [firstBranch, setFirstBranch] = useState(null);
+  
+  const otpSecret = "cLG8Q~uvxGH_x9fA-UGDteh4XerkmebL2oe1mbY9";
   const [branchesHours, setBranchesHours] = useState([]);
   const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
@@ -728,6 +732,9 @@ const MakeModelFlow = () => {
   };
 
   const handleVehicleConditionSubmit = (data) => {
+    if(data.email == ""){
+      data = getValues();
+    }
     
     // If runsAndDrives is "No", or hasIssues is "Yes", or hasAccident is "Yes", show additional questions
     if (
@@ -781,7 +788,22 @@ const MakeModelFlow = () => {
       
     }
 
+    if(data.email !== ""){
+      localStorage.setItem("dataUpdateCustomerJourney", JSON.stringify({
+        "mileage": data.odometer,
+        "zipCode": data.zipCode,
+        "email": data.email,
+        "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
+        "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
+        "hasDamage": data.hasIssues === "Yes" ? true : false,
+        "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
+        "optionalPhoneNumber": formatPhone(data.phone),
+        "customerHasOptedIntoSmsMessages": data.receiveSMS,
+        "captchaWasDisplayed": data.captchaMode
+      }));
+    }
 
+    const idjourney = customerJourneyId || localStorage.getItem("customerJourneyId");
     UpdateCustomerJourney({
       "mileage": data.odometer,
       "zipCode": data.zipCode,
@@ -793,9 +815,67 @@ const MakeModelFlow = () => {
       "optionalPhoneNumber": formatPhone(data.phone),
       "customerHasOptedIntoSmsMessages": data.receiveSMS,
       "captchaWasDisplayed": data.captchaMode
-    }, customerJourneyId).then(response => {
+    }, idjourney).then(response => {
       const cleanData = cleanObject(response);
-      getBranchesByCustomerVehicle(data.zipCode, response.customerVehicleId).then(branchesHours => {
+      
+      
+      
+      updateVehicleData({
+        ...vehicleData,
+        ...cleanData
+      });
+
+      localStorage.setItem("dataVehicleCondition", JSON.stringify({
+        ...vehicleData,
+        ...cleanData
+      }));
+
+      if(data.email !== ""){
+        localStorage.setItem("dataUpdateCustomerJourney", JSON.stringify({
+          "mileage": data.odometer,
+          "zipCode": data.zipCode,
+          "email": data.email,
+          "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
+          "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
+          "hasDamage": data.hasIssues === "Yes" ? true : false,
+          "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
+          "optionalPhoneNumber": formatPhone(data.phone),
+          "customerHasOptedIntoSmsMessages": data.receiveSMS,
+          "captchaWasDisplayed": data.captchaMode
+        }));
+      }
+
+      saveValuationVehicle({
+        "cvid":cleanData.customerVehicleId,
+        "mileage": data.odometer,
+        "zipCode": data.zipCode,
+        "email": data.email,
+        "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
+        "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
+        "hasDamage": data.hasIssues === "Yes" ? true : false,
+        "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
+        "optionalPhoneNumber": formatPhone(data.phone),
+        "customerJourneyId": customerJourneyId,
+        "customerHasOptedIntoSmsMessages": data.receiveSMS,
+        "captchaMode": "true"
+      }).then(response => {
+        setLoadingValuation(false);
+        setValuation({formattedValue:formatUSD(response.valuationAmount)});
+        getBranchesDataByZipMakeModel(data.zipCode, cleanData.customerVehicleId)
+
+      }).catch(error => {
+        console.error("Error saving valuation vehicle:", error);
+      });
+
+
+    }).catch(error => {
+      console.error("Error updating customer journey:", error);
+    });
+    sessionStorage.setItem("vehicleData", JSON.stringify(vehicleData));
+  };
+
+  const getBranchesDataByZipMakeModel = (zipCode, customerVehicleId) => {
+      getBranchesByCustomerVehicle(zipCode, customerVehicleId).then(branchesHours => {
         const branchesHoursData = branchesHours.physical.map(branch => {
           let obj = [];
           const days = getNext12Days();
@@ -834,46 +914,50 @@ const MakeModelFlow = () => {
           }
         });
 
-      if(branchesHours.mobile.branchId){
-        const branch = branchesHours.mobile;
-        let obj = [];
-          const days = getNext12Days();
-          for(var i = 0; i < days.length; i++){
-            const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
-            const objData =    {
-              closeTime: "08:00 PM",
-              date: days[i],
-              dayOfWeek: getDayName(days[i]),
-              isExceptional: false,
-              openTime: "09:00 AM",
-              type: "open"
-            };    
-            if(objData.type === "open"){
-              obj.push(objData);
-              obj.push({...objData, openTime: "01:00 PM"});
-            }else{
-              obj.push(objData);
+        if(branchesHours?.mobile?.branchId){
+          const branch = branchesHours.mobile;
+          let obj = [];
+            const days = getNext12Days();
+            for(var i = 0; i < days.length; i++){
+              const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
+              const objData =    {
+                closeTime: "08:00 PM",
+                date: days[i],
+                dayOfWeek: getDayName(days[i]),
+                isExceptional: false,
+                openTime: "09:00 AM",
+                type: "open"
+              };    
+              if(objData.type === "open"){
+                obj.push(objData);
+                obj.push({...objData, openTime: "01:00 PM"});
+              }else{
+                obj.push(objData);
+              }
             }
-          }
-          
-          branchesHoursData.unshift({
-            address1: "",
-            address2: "",
-            branchEmail: "",
-            branchId: branch.branchId,
-            branchManagerName: "",
-            branchName: branch.branchName,
-            branchPhone: branch.telephone,
-            city: branch.city,
-            distanceMiles: branch.distanceInMiles,
-            latitude: "",
-            longitude: "",
-            type:"home",
-            operationHours: obj
-        });
-      }
+            
+            branchesHoursData.unshift({
+              address1: "",
+              address2: "",
+              branchEmail: "",
+              branchId: branch.branchId,
+              branchManagerName: "",
+              branchName: branch.branchName,
+              branchPhone: branch.telephone,
+              city: branch.city,
+              distanceMiles: branch.distanceInMiles,
+              latitude: "",
+              longitude: "",
+              type:"home",
+              operationHours: obj
+          });
+        }
         
         setBranchesData(branchesHoursData);
+
+        getBrancheById(branchesHoursData[0].branchId).then(branch => {
+          setFirstBranch(branch);
+        });
 
         sessionStorage.setItem("branchesHours", JSON.stringify(branchesHours));
         setBranchesHours(branchesHours);
@@ -881,40 +965,7 @@ const MakeModelFlow = () => {
       }).catch(error => {
         console.error("Error getting branches:", error);
       });
-      
-      updateVehicleData({
-        ...vehicleData,
-        ...cleanData
-      });
-
-      saveValuationVehicle({
-        "cvid":cleanData.customerVehicleId,
-        "mileage": data.odometer,
-        "zipCode": data.zipCode,
-        "email": data.email,
-        "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
-        "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
-        "hasDamage": data.hasIssues === "Yes" ? true : false,
-        "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
-        "optionalPhoneNumber": formatPhone(data.phone),
-        "customerJourneyId": customerJourneyId,
-        "customerHasOptedIntoSmsMessages": data.receiveSMS,
-        "captchaMode": "true"
-      }).then(response => {
-        setLoadingValuation(false);
-        setValuation({formattedValue:formatUSD(response.valuationAmount)});
-
-
-      }).catch(error => {
-        console.error("Error saving valuation vehicle:", error);
-      });
-
-
-    }).catch(error => {
-      console.error("Error updating customer journey:", error);
-    });
-    sessionStorage.setItem("vehicleData", JSON.stringify(vehicleData));
-  };
+  }
 
   // Handler for submitting additional questions
   const handleAdditionalQuestionsSubmit = (data) => {
@@ -1075,6 +1126,12 @@ const MakeModelFlow = () => {
 
     
     const branchSelect = branchesData.find(branch => branch.branchId === appointmentData.locationId);
+
+    const secret = OTPAuth.Secret.fromUTF8(`${vehicleData.customerVehicleId}${otpSecret}`);
+    const totp = new OTPAuth.TOTP({ secret });
+    const otpCode = totp.generate();
+
+      console.log("---- otpCode ---", otpCode);console.log("OTP Code:", otpCode);
     createAppointment({
       "customerVehicleId": vehicleData.customerVehicleId,
       "branchId": appointmentData.locationId,
@@ -1089,8 +1146,9 @@ const MakeModelFlow = () => {
       "city": appointmentData.location,
       "model": vehicleData.model,
       "visitId": vehicleData.vid,
-      "otpCode": "true"
+      "otpCode": otpCode
     }).then(response => {
+      console.log("---- response ---", response);
       updateVehicleData({
         ...vehicleData,
         branchInfo: branchSelect,
@@ -1128,8 +1186,10 @@ const MakeModelFlow = () => {
   //   }
   // };
 
-  const handleSearchByZip = (e) => {
-    e.preventDefault();
+  const handleSearchByZip = (zipCode) => {
+    
+    setValue("zipCode", zipCode);
+    handleVehicleConditionSubmit(getValues());
     if (searchZip.trim()) {
       // Branch search by ZIP code logic can be implemented here
       // For now, this is a placeholder for future functionality
@@ -2581,6 +2641,7 @@ const MakeModelFlow = () => {
 
                         {branchesData.length > 0 && <CalendarScheduler
                           branches={branchesData}
+                          searchZip={handleSearchByZip}
                           onSlotClick={handleSlotClick}
                           selectedDate={selectedAppointment?.date}
                           selectedTime={selectedAppointment?.specificTime}
@@ -2754,34 +2815,34 @@ const MakeModelFlow = () => {
                         <div className="text-lg md:text-xl font-bold text-gray-900 mb-4">
                           Your nearest branch is
                           <br />
-                          34 miles away
+                          {firstBranch?.distance} miles away
                         </div>
                         <hr className="border-t border-gray-300 my-6 max-w-xs mx-auto" />
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                          Pompano Beach
+                          Pompano Beach {firstBranch?.branchLocation?.branchName}
                         </h1>
                         <p className="mb-6">
                           <a
-                            href="https://maps.app.goo.gl/C9VyGKeAuoV5REpn7"
+                            href={firstBranch?.branchLocation?.mapURL}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-600 hover:text-primary-800 underline"
                           >
-                            2621 NE 5th Avenue
+                            {firstBranch?.branchLocation?.address1}
                             <br />
                             <br />
-                            Pompano Beach, FL 33064
+                            {firstBranch?.branchLocation?.city}, {firstBranch?.branchLocation?.state} {firstBranch?.branchLocation?.zipCode}
                           </a>
                         </p>
                         <div className="flex flex-col gap-3 max-w-xs mx-auto">
                           <a
-                            href="tel:9545460418"
+                            href={firstBranch?.branchLocation?.branchPhone ? `tel:${firstBranch?.branchLocation?.branchPhone}` : ""}
                             className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-center"
                           >
-                            Call (954) 546-0418
+                            Call {firstBranch?.branchLocation?.branchPhone}
                           </a>
                           <a
-                            href="mailto:pompanobeach.fl@webuyanycarusa.com"
+                            href={firstBranch?.branchLocation?.branchEmail ? `mailto:${firstBranch?.branchLocation?.branchEmail}` : ""}
                             className="bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-center"
                           >
                             Email the Branch

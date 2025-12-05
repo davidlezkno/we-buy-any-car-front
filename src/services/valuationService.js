@@ -119,6 +119,14 @@ export const getVehicleValuation = async (vehicleData, userInfo, retries = 3) =>
 
 export const saveValuationVehicle = async (valuationVehicle, retries = 3) => {
   try {
+
+    if(valuationVehicle.email === ""){
+      const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
+      valuationVehicle = {
+        ...valuationVehicle,
+        ...data
+      };
+    }
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
