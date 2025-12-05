@@ -44,7 +44,7 @@ const MakeModelFlow = () => {
   const [branchesData, setBranchesData] = useState([]);
   const [firstBranch, setFirstBranch] = useState(null);
   
-  const otpSecret = "cLG8Q~uvxGH_x9fA-UGDteh4XerkmebL2oe1mbY9";
+  const otpSecret = "";
   const [branchesHours, setBranchesHours] = useState([]);
   const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
@@ -831,18 +831,7 @@ const MakeModelFlow = () => {
       }));
 
       if(data.email !== ""){
-        localStorage.setItem("dataUpdateCustomerJourney", JSON.stringify({
-          "mileage": data.odometer,
-          "zipCode": data.zipCode,
-          "email": data.email,
-          "isFinancedOrLeased": data.hasClearTitle === "Yes" ? true : false,
-          "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
-          "hasDamage": data.hasIssues === "Yes" ? true : false,
-          "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
-          "optionalPhoneNumber": formatPhone(data.phone),
-          "customerHasOptedIntoSmsMessages": data.receiveSMS,
-          "captchaWasDisplayed": data.captchaMode
-        }));
+
       }
 
       saveValuationVehicle({
