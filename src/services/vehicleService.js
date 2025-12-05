@@ -85,7 +85,7 @@ export const decodeLicensePlate = async (plate, state, retries = 3) => {
 };
 
 export const getVehicleMakes = async (year, retries = 3) => {
-  
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -100,16 +100,16 @@ export const getVehicleMakes = async (year, retries = 3) => {
   }
 };
 
-export const createCustomerJourney = async (year,make,model, visitId = 1, retries = 3) => {
-  
+export const createCustomerJourney = async (year, make, model, visitId = 1, retries = 3) => {
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey`, 
-      {year: year, make: make, model: model, visitId: visitId}, 
+      `http://localhost:5001/api/customer-journey`,
+      { year: year, make: make, model: model, visitId: visitId },
       { headers }
     );
     return response.data;
@@ -120,8 +120,8 @@ export const createCustomerJourney = async (year,make,model, visitId = 1, retrie
   }
 };
 
-export const createCustomerJourneyByVin = async ( vin = 1, retries = 3 ) => {
-  
+export const createCustomerJourneyByVin = async (vin = 1, retries = 3) => {
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -136,19 +136,19 @@ export const createCustomerJourneyByVin = async ( vin = 1, retries = 3 ) => {
   } catch (error) {
     console.error('Create customer journey error:', error);
     if (retries === 0) return [];
-    return createCustomerJourneyByVin( vin, retries - 1);
+    return createCustomerJourneyByVin(vin, retries - 1);
   }
 };
 
 
-export const CustomerDetailJourney = async (newData,customerJourneyId, retries = 3) => {
-  
+export const CustomerDetailJourney = async (newData, customerJourneyId, retries = 3) => {
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    
+
     const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
     return response.data;
   } catch (error) {
@@ -158,14 +158,14 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
   }
 };
 
-export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 3) => {
-  
+export const UpdateCustomerJourney = async (newData, customerJourneyId, retries = 3) => {
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    
+
     const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
     return response.data;
   } catch (error) {
@@ -181,7 +181,7 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
 * @returns {Promise<Object>} Customer journey data
 */
 export const GetCustomerJourney = async (customerJourneyId, retries = 3) => {
-  
+
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -202,23 +202,23 @@ export const GetCustomerJourney = async (customerJourneyId, retries = 3) => {
  * @param {string} make - Vehicle make
  * @returns {Promise<string[]>} Array of vehicle models
  */
-export const getSeries = async (year,model,make, retries = 3) => {
+export const getSeries = async (year, model, make, retries = 3) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
-    { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`,
+      { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
     if (retries === 0) return [];
-    return getSeries(year,model,make, retries - 1);
+    return getSeries(year, model, make, retries - 1);
   }
 };
 
-export const getModelsByMake = async (year,make, retries = 3) => {
+export const getModelsByMake = async (year, make, retries = 3) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -229,7 +229,7 @@ export const getModelsByMake = async (year,make, retries = 3) => {
   } catch (error) {
     console.error('Get models error:', error);
     if (retries === 0) return [];
-    return getModelsByMake(year,make, retries - 1);
+    return getModelsByMake(year, make, retries - 1);
   }
 };
 
@@ -244,7 +244,7 @@ export const getVehicleYears = async (retries = 3) => {
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.get('http://localhost:5001/api/Vehicles/years', { headers });
-    
+
     return response.data;
   } catch (error) {
     console.error('Get years error:', error);
@@ -260,7 +260,7 @@ export const getImageVehicle = async (externalUrl, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    
+
     const response = await fetch(
       `http://localhost:5001/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
       { headers }
@@ -269,7 +269,7 @@ export const getImageVehicle = async (externalUrl, retries = 3) => {
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob); // URL para usar en <img>
     return objectUrl;
-    
+
   } catch (error) {
     console.error('Get years error:', error);
     if (retries === 0) return [];
@@ -284,8 +284,19 @@ export const getImageVehicle = async (externalUrl, retries = 3) => {
  * @param {string} year - Vehicle year
  * @returns {Promise<string>} Image URL
  */
+
+// Image cache to avoid repeated lookups
+const imageCache = new Map();
+
 export const getVehicleImage = async (make, model, year, retries = 3) => {
   try {
+    const cacheKey = `${make}-${model}-${year}`.toLowerCase();
+
+    // Check cache first
+    if (imageCache.has(cacheKey)) {
+      return imageCache.get(cacheKey);
+    }
+
     const basePath = import.meta.env.BASE_URL || '/';
 
     const vehicleImageMap = {
@@ -302,9 +313,10 @@ export const getVehicleImage = async (make, model, year, retries = 3) => {
     const imageUrl =
       vehicleImageMap[makeLower] || `${basePath}vehicles/default-car.jpg`;
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Cache the result
+    imageCache.set(cacheKey, imageUrl);
 
+    // Removed artificial delay for faster loading
     return imageUrl;
   } catch (error) {
     console.error('Get vehicle image error:', error);
@@ -323,20 +335,24 @@ export const getVehicleImage = async (make, model, year, retries = 3) => {
  */
 export const getComponentList = async (zoneId, retries = 3) => {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
 
-    return [
-      { value: '9', label: 'Bumper' },
-      { value: '103', label: 'Bumper - Metal' },
-      { value: '23', label: 'Grille' },
-      { value: '4', label: 'Hood' },
-      { value: '28', label: 'Lights' },
-      { value: '60', label: 'Windshield' },
-    ];
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/components`, { headers });
+    return response.data;
   } catch (error) {
     console.error('Get component list error:', error);
-    if (retries === 0) return [];
-    return getComponentList(zoneId, retries - 1);
+    // Fallback to static data if API fails
+    return [
+      { value: "9", label: "Bumper" },
+      { value: "103", label: "Bumper - Metal" },
+      { value: "23", label: "Grille" },
+      { value: "4", label: "Hood" },
+      { value: "28", label: "Lights" },
+      { value: "60", label: "Windshield" }
+    ];
   }
 };
 
@@ -347,17 +363,21 @@ export const getComponentList = async (zoneId, retries = 3) => {
  */
 export const getFaultTypeList = async (componentId, retries = 3) => {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
 
-    return [
-      { value: '17', label: 'Dent' },
-      { value: '68', label: 'Dent - Large' },
-      { value: '36', label: 'Rust' },
-    ];
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/fault-types`, { headers });
+    return response.data;
   } catch (error) {
     console.error('Get fault type list error:', error);
-    if (retries === 0) return [];
-    return getFaultTypeList(componentId, retries - 1);
+    // Fallback to static data if API fails
+    return [
+      { value: "17", label: "Dent" },
+      { value: "68", label: "Dent - Large" },
+      { value: "36", label: "Rust" }
+    ];
   }
 };
 

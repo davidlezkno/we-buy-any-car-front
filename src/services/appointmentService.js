@@ -10,53 +10,26 @@ import httpClient from './utils/httpClient';
  * @param {string} zipCode - Zip code for search
  * @returns {Promise<Array>} Array of nearby stores
  */
+/**
+ * Find nearby stores/locations
+ * @param {string} zipCode - Zip code for search
+ * @returns {Promise<Array>} Array of nearby stores
+ */
 export const findNearbyStores = async (zipCode, retries = 3) => {
   try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
 
-    // Mock store data - Replace with actual API call
-    return [
-      {
-        id: 1,
-        name: 'We Buy Any Car - Downtown',
-        address: '123 Main Street',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10001',
-        phone: '(555) 123-4567',
-        hours: 'Mon-Sat: 9AM-7PM, Sun: 10AM-5PM',
-        distance: '2.3 miles',
-        rating: 4.8,
-        coordinates: { lat: 40.7128, lng: -74.006 },
-      },
-      {
-        id: 2,
-        name: 'We Buy Any Car - Midtown',
-        address: '456 Park Avenue',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10022',
-        phone: '(555) 234-5678',
-        hours: 'Mon-Sat: 9AM-7PM, Sun: 10AM-5PM',
-        distance: '3.7 miles',
-        rating: 4.7,
-        coordinates: { lat: 40.7589, lng: -73.9851 },
-      },
-      {
-        id: 3,
-        name: 'We Buy Any Car - Brooklyn',
-        address: '789 Atlantic Avenue',
-        city: 'Brooklyn',
-        state: 'NY',
-        zipCode: '11238',
-        phone: '(555) 345-6789',
-        hours: 'Mon-Sat: 9AM-7PM, Sun: 10AM-5PM',
-        distance: '5.1 miles',
-        rating: 4.9,
-        coordinates: { lat: 40.6782, lng: -73.9442 },
-      },
-    ];
+    const response = await httpClient.get(`http://localhost:5001/api/content/branches`, {
+      params: { zipCode, limit: 5, branchType: 'Physical' },
+      headers
+    });
+
+    // Transform backend response to match frontend expectation if needed
+    // Backend returns { branchLocations: [...] }
+    return response.data.branchLocations || [];
   } catch (error) {
     console.error('Find stores error:', error);
     if (retries === 0) return [];
@@ -70,7 +43,7 @@ export const createAppointment = async (appointmentData, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    
+
     const response = await httpClient.post(`http://localhost:5001/api/Appointment/book`, appointmentData, { headers });
     return response.data;
   } catch (error) {
@@ -116,9 +89,32 @@ export const getAvailableTimeSlots = async (date, locationId, retries = 3) => {
   }
 };
 
+/**
+ * Request OTP code for appointment booking
+ * @param {Object} otpRequest - OTP request data (customerVehicleId, branchId, targetPhoneNumber)
+ * @returns {Promise<Object>} OTP request result
+ */
+export const requestOTP = async (otpRequest, retries = 3) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+
+    const response = await httpClient.post(`http://localhost:5001/api/scheduling/otp/request`, otpRequest, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Request OTP error:', error);
+    if (retries === 0) throw error;
+    return requestOTP(otpRequest, retries - 1);
+  }
+};
+
 export const appointmentService = {
   findNearbyStores,
   bookAppointment,
   getAvailableTimeSlots,
+  createAppointment,
+  requestOTP,
 };
 

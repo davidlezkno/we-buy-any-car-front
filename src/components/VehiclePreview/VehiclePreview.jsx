@@ -10,8 +10,24 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   const [imageLoading, setImageLoading] = useState(false);
   const [imageToShow, setImageToShow] = useState(imageUrl);
 
+  // Preload image when imageUrl changes
   useEffect(() => {
-    if(imageUrl !== ""){
+    if (imageUrl && imageUrl !== "") {
+      setImageLoading(true);
+
+      // Preload the image
+      const img = new Image();
+      img.onload = () => {
+        setLoadedImageUrl(imageUrl);
+        setImageLoading(false);
+      };
+      img.onerror = () => {
+        setLoadedImageUrl(null);
+        setImageLoading(false);
+      };
+      img.src = imageUrl;
+    } else {
+      setLoadedImageUrl(null);
       setImageLoading(false);
       setImageToShow(imageUrl);
     }
@@ -35,7 +51,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={`${vehicle.year}-${vehicle.make}-${vehicle.model}`}
+        key={`${vehicle.year}-${vehicle.make}-${vehicle.model}-${vehicle.trim || ''}`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
@@ -66,11 +82,11 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
               className="w-full h-full object-cover"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.3 }}
               onError={(e) => {
-                // If image fails, use default image
-                const basePath = import.meta.env.BASE_URL || "/";
-                e.currentTarget.src = `${basePath}vehicles/default-car.jpg`;
+                // If image fails, hide it
+                e.currentTarget.style.display = 'none';
+                setLoadedImageUrl(null);
               }}
             />
           ) : (
@@ -78,8 +94,6 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
               <Car className="w-20 h-20 text-gray-300" />
             </div>
           )}
-
-            
 
           {/* Color Badge */}
           {vehicle.color && (
