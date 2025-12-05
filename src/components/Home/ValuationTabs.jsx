@@ -517,8 +517,8 @@ const ValuationTabs = ({
   );
 
   return (
-    <section className="bg-gray-100 pt-0 pb-0 md:pt-8 pb-1">
-      <div className="section-container md:mt-2 relative z-20">
+    <section className="bg-gray-100 pt-0 pb-0">
+      <div className="section-container !pt-4 !pb-4 md:!pt-6 md:!pb-6 relative z-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -526,8 +526,8 @@ const ValuationTabs = ({
           transition={{ duration: 0.6 }}
         >
           {!hideHeaderAndTabs && (
-            <div className="text-center">
-              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <div className="text-center px-4 md:px-6 lg:px-8">
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 For the Most Accurate Valuation,{" "}
                 <button
                   onClick={() => onTabChange(1)}
@@ -547,7 +547,7 @@ const ValuationTabs = ({
               </p>
             </div>
           )}
-          <div className="p-4 md:p-8 lg:p-12">
+          <div className="p-4 md:p-6 lg:p-8">
             {!hideHeaderAndTabs ? (
               <Tabs
                 activeTab={activeTab}

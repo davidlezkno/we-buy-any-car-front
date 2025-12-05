@@ -5,14 +5,24 @@
 
 import axios from 'axios';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
+// Get API base URL from environment variable or use default
+// In production, this should be set via VITE_API_BASE_URL
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.MODE === 'production' 
+    ? 'https://api.sellyourcarrnow.com' 
+    : 'http://localhost:5001');
+
+// Ensure baseURL ends with / for proper path resolution
+const normalizedBaseURL = API_BASE_URL.endsWith('/') 
+  ? API_BASE_URL 
+  : `${API_BASE_URL}/`;
 
 /**
  * Create axios instance with default configuration
  */
 const httpClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: normalizedBaseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
