@@ -5,7 +5,10 @@
 
 import axios from 'axios';
 import httpClient from './utils/httpClient';
+<<<<<<< HEAD
 import { random10Digits } from '../utils/helpers';
+=======
+>>>>>>> 5ac223378d2c1cb94805c64bfa2ca1388acd7ac5
 
 // External API endpoints
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
@@ -92,7 +95,7 @@ export const getVehicleMakes = async (year, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`api/Vehicles/makes/${year.toString()}`, { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/makes/${year.toString()}`, { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get makes error:', error);
@@ -129,7 +132,7 @@ export const createCustomerJourney = async (year,make,model, visitId = 1, retrie
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `api/customer-journey`, 
+      `http://localhost:5001/api/customer-journey`, 
       {year: year, make: make, model: model, visitId: visitId}, 
       { headers }
     );
@@ -149,7 +152,7 @@ export const createCustomerJourneyByVin = async ( vin = 1, retries = 3 ) => {
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `api/customer-journey/vin`, 
+      `http://localhost:5001/api/customer-journey/vin`, 
       {visitId: 1, vin: vin}, 
       { headers }
     );
@@ -170,7 +173,7 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
+    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -195,7 +198,7 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
+    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -216,7 +219,7 @@ export const GetCustomerJourney = async (customerJourneyId, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`api/customer-journey/${customerJourneyId.toString()}`, { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -237,7 +240,7 @@ export const getSeries = async (year,model,make, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
     { headers });
     return response.data.sort();
   } catch (error) {
@@ -253,7 +256,7 @@ export const getModelsByMake = async (year,make, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`api/Vehicles/models/${year.toString()}/${make.toString()}`, { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/models/${year.toString()}/${make.toString()}`, { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
@@ -272,7 +275,7 @@ export const getVehicleYears = async (retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get('api/Vehicles/years', { headers });
+    const response = await httpClient.get('http://localhost:5001/api/Vehicles/years', { headers });
     
     return response.data;
   } catch (error) {

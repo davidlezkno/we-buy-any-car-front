@@ -131,7 +131,7 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.post(`api/Valuation`, valuationVehicle, { headers });
+    const response = await httpClient.post(`http://localhost:5001/api/Valuation`, valuationVehicle, { headers });
     return response.data;
   } catch (error) {
     console.error('Save valuation vehicle error:', error);
@@ -147,7 +147,7 @@ export const getValuationVehicle = async (id, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`api/Valuation/${id.toString()}`, { headers });
+    const response = await httpClient.get(`http://localhost:5001/api/Valuation/${id.toString()}`, { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
