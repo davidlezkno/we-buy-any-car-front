@@ -85,34 +85,28 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
-
-  /* Radio buttons: WBAC Green accent color when selected */
-  input[type="radio"]:checked {
-    accent-color: #1b9c3f;
-  }
 }
 
 @layer components {
   /* Modernized buttons: Glassmorphism style */
   .btn {
     @apply px-6 py-3.5 rounded-2xl font-semibold transition-all duration-500 
-           focus:outline-none focus:ring-0 focus:ring-offset-0
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent
            disabled:opacity-50 disabled:cursor-not-allowed;
     letter-spacing: 0.01em;
     position: relative;
     overflow: hidden;
-    border: none;
   }
 
   /* Primary button: WBAC Green with soft and natural shadows */
   .btn-primary {
-    @apply btn text-white focus:ring-0;
+    @apply btn text-white focus:ring-primary-500;
     background: linear-gradient(135deg, #20b24d 0%, #1a9a3e 100%);
     box-shadow:
       0 4px 16px 0 rgba(32, 178, 77, 0.25),
       0 2px 8px 0 rgba(32, 178, 77, 0.15),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .btn-primary::before {

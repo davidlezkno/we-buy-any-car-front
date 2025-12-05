@@ -5,12 +5,9 @@
  */
 
 import axios from 'axios';
-import { API_BASE_URL } from './utils/httpClient';
 
-// External API endpoints - ensure it ends with /api
-const BASE_URL = API_BASE_URL.endsWith('/api') 
-  ? API_BASE_URL 
-  : `${API_BASE_URL}/api`;
+// External API endpoints
+const BASE_URL = 'http://localhost:5001/api';
 
 export const uathLogin = async (email, password, retries = 3) => {
   try {
