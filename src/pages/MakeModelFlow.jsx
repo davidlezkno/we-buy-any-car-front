@@ -44,7 +44,8 @@ const MakeModelFlow = () => {
   const [branchesData, setBranchesData] = useState([]);
   const [firstBranch, setFirstBranch] = useState(null);
   
-  // const otpSecret = "";
+  // OTP Secret from environment variable
+  const otpSecret = import.meta.env.VITE_OTP_SECRET || "";
   const [branchesHours, setBranchesHours] = useState([]);
   const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
