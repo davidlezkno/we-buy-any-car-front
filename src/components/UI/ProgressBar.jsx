@@ -4,9 +4,9 @@ const ProgressBar = ({ currentStep, totalSteps, steps = [] }) => {
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <div className="w-full mb-0 md:mb-12 px-4 sm:px-6 md:px-8 lg:px-12">
+    <div className="w-full mb-0 md:mb-10 px-4 sm:px-6 md:px-8 lg:px-12">
       {/* Progress Bar with Integrated Steps */}
-      <div className="relative mb-3">
+      <div className="relative mb-6">
         {/* Background Bar - thicker to accommodate circles passing through */}
         <div className="relative h-4 md:h-5 bg-gray-200 rounded-full overflow-visible max-w-full">
           {/* Progress Fill - green bar that extends through circles */}
@@ -50,9 +50,10 @@ const ProgressBar = ({ currentStep, totalSteps, steps = [] }) => {
                     <div
                       className={`
                         w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-base md:text-lg transition-all duration-300
-                        ${isCompleted
-                          ? "bg-primary-600 text-white"
-                          : "bg-gray-200 text-gray-500"
+                        ${
+                          isCompleted
+                            ? "bg-primary-600 text-white"
+                            : "bg-gray-200 text-gray-500"
                         }
                       `}
                       style={{

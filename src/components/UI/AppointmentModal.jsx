@@ -6,17 +6,17 @@ import Input from "./Input";
 import OTPModal from "./OTPModal";
 import { random3Digits } from "../../utils/helpers";
 
-const AppointmentModal = ({
-  isOpen,
-  onClose,
-  selectedSlot,
-  onConfirm,
-  initialPhone = "",
-  initialReceiveSMS = false,
-  vehicleData,
+const AppointmentModal = ({ 
+  isOpen, 
+  onClose, 
+  selectedSlot, 
+  onConfirm, 
+  initialPhone = "", 
+  initialReceiveSMS = false, 
+  vehicleData, 
   branchesHours }) => {
-
-  const [step, setStep] = useState(1);
+  
+  const [step, setStep] = useState(1); 
   const [selectedTime, setSelectedTime] = useState({});
   const [formData, setFormData] = useState({
     firstName: "",
@@ -38,7 +38,7 @@ const AppointmentModal = ({
     const digits = getDigitsOnly(phone);
     // Limit to 10 digits
     const limitedDigits = digits.slice(0, 10);
-
+    
     if (limitedDigits.length === 0) return "";
     if (limitedDigits.length <= 3) return `(${limitedDigits}`;
     if (limitedDigits.length <= 6) {
@@ -59,8 +59,8 @@ const AppointmentModal = ({
           const phoneDigits = getDigitsOnly(formatted);
           // If phone has 10 digits, auto-select checkbox
           const shouldAutoSelectSMS = phoneDigits.length === 10;
-          return {
-            ...prev,
+          return { 
+            ...prev, 
             telephone: formatted,
             receiveSMS: shouldAutoSelectSMS
           };
@@ -68,33 +68,30 @@ const AppointmentModal = ({
         return prev;
       });
     }
-  }, [isOpen, initialPhone]);
 
-  // Set available times based on selected slot and branch hours
-  useEffect(() => {
-    if (branchesHours.length > 0 && selectedSlot?.time) {
+    if(branchesHours.length > 0){
       const dataHours = {
         Morning: [],
         Afternoon: [],
         Evening: [],
       };
-      branchesHours.forEach(hours => {
+      branchesHours.map(hours => {
         const hour = parseInt(hours.timeSlot24Hour.split(':')[0], 10);
-        if (hour >= 5 && hour < 12) {
-          dataHours['Morning'].push(hours);
-        } else if (hour >= 12 && hour < 19) {
-          dataHours['Afternoon'].push(hours);
-        }
-        else if (hour >= 18 && hour < 24) {
-          dataHours['Evening'].push(hours);
-        }
+          if(hour >= 5 && hour < 12){
+            dataHours['Morning'].push(hours);
+          }else if(hour >= 12 && hour < 19){
+            dataHours['Afternoon'].push(hours);
+          }
+          else if(hour >= 18 && hour < 24){
+            dataHours['Evening'].push(hours);
+          }
       });
-
-      setAvailableTimes(dataHours[selectedSlot.time] || []);
+      
+      setAvailableTimes(dataHours[selectedSlot?.time] || []);
     }
-  }, [branchesHours, selectedSlot]);
+  }, [isOpen, initialPhone]);
 
-
+  
   const handleTimeSelect = (time) => {
     setSelectedTime(time);
     setStep(2);
@@ -141,35 +138,17 @@ const AppointmentModal = ({
   };
 
   const handleConfirm = async () => {
-
+    
     if (validateForm()) {
-
+      
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);
-
-      try {
-        // Import requestOTP from appointmentService
-        const { requestOTP } = await import('../../services/appointmentService');
-
-        // Request OTP from backend
-        const otpRequest = {
-          customerVehicleId: vehicleData?.id || vehicleData?.customerVehicleId || 0,
-          branchId: selectedSlot?.locationId || selectedSlot?.branchId || 0,
-          targetPhoneNumber: getDigitsOnly(formData.telephone)
-        };
-
-        await requestOTP(otpRequest);
+      // Simulate sending OTP code (in production, this would be an API call)
+      // TODO: Replace with actual API call to send OTP
+      setTimeout(() => {
         setIsSendingOTP(false);
         setShowOTPModal(true);
-      } catch (error) {
-        console.error('Failed to send OTP:', error);
-        setIsSendingOTP(false);
-        // Show error to user
-        setErrors(prev => ({
-          ...prev,
-          telephone: 'Failed to send verification code. Please try again.'
-        }));
-      }
+      }, 500);
     } else {
       // If validation fails, scroll to first error or checkbox
       if (errors.receiveSMS) {
@@ -208,10 +187,10 @@ const AppointmentModal = ({
     //         specificTime: selectedTime?.timeSlot24Hour,
     //         contactInfo: formData,
     //       };
-
+          
     //       // Call onConfirm to update appointment info
     //       onConfirm(confirmedAppointment);
-
+          
     //       // Reset and close modals
     //       setStep(1);
     //       setSelectedTime({});
@@ -224,12 +203,12 @@ const AppointmentModal = ({
     //       setErrors({});
     //       setShowOTPModal(false);
     //       onClose();
-
+          
     //       // Navigate to confirmation page immediately after OTP verification
     //       setTimeout(() => {
     //         navigate("/valuation/confirmation", { replace: true });
     //       }, 100);
-
+          
     //       resolve();
     //     } else {
     //       reject(new Error("Invalid code. Please try again."));
@@ -239,23 +218,11 @@ const AppointmentModal = ({
   };
 
   const handleResendOTP = async () => {
+    // TODO: Replace with actual API call to resend OTP
     setIsSendingOTP(true);
-
-    try {
-      const { requestOTP } = await import('../../services/appointmentService');
-
-      const otpRequest = {
-        customerVehicleId: vehicleData?.id || vehicleData?.customerVehicleId || 0,
-        branchId: selectedSlot?.locationId || selectedSlot?.branchId || 0,
-        targetPhoneNumber: getDigitsOnly(formData.telephone)
-      };
-
-      await requestOTP(otpRequest);
+    setTimeout(() => {
       setIsSendingOTP(false);
-    } catch (error) {
-      console.error('Failed to resend OTP:', error);
-      setIsSendingOTP(false);
-    }
+    }, 500);
   };
 
   const handleChangePhone = () => {
@@ -445,8 +412,9 @@ const AppointmentModal = ({
                           setErrors((prev) => ({ ...prev, receiveSMS: "" }));
                         }
                       }}
-                      className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${errors.receiveSMS ? "border-red-500 border-2 ring-2 ring-red-300" : ""
-                        }`}
+                      className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${
+                        errors.receiveSMS ? "border-red-500 border-2 ring-2 ring-red-300" : ""
+                      }`}
                     />
                     <label
                       htmlFor="appointment-modal-receive-sms-checkbox"
@@ -483,18 +451,19 @@ const AppointmentModal = ({
                     onClick={handleConfirm}
                     icon={ArrowRight}
                     iconPosition="right"
-                    className={`flex-1 ${!isFormValid() || isSendingOTP ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                    className={`flex-1 ${
+                      !isFormValid() || isSendingOTP ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     id="appointment-modal-book-button"
                     disabled={!isFormValid() || isSendingOTP}
                     style={
                       !isFormValid() || isSendingOTP
                         ? {
-                          background:
-                            "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                          color: "#FFFFFF",
-                          borderColor: "#9ca3af",
-                        }
+                            background:
+                              "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
+                            color: "#FFFFFF",
+                            borderColor: "#9ca3af",
+                          }
                         : {}
                     }
                   >
