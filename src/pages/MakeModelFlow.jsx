@@ -44,7 +44,7 @@ const MakeModelFlow = () => {
   const [branchesData, setBranchesData] = useState([]);
   const [firstBranch, setFirstBranch] = useState(null);
   
-  const otpSecret = "";
+  // const otpSecret = "";
   const [branchesHours, setBranchesHours] = useState([]);
   const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
