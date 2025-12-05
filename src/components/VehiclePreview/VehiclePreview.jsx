@@ -6,9 +6,9 @@ import { useLocation } from "react-router-dom";
 const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   const location = useLocation();
   // Check if we're on step 2 (Series & Body) - URL is /valuation/details
-  const isStep2 = location.pathname === "/valuation/details";
+  const isStep2 = location.pathname.indexOf("/valuation/details") >= 0;  
   const [imageLoading, setImageLoading] = useState(false);
-  const [loadedImageUrl, setLoadedImageUrl] = useState(null);
+  const [imageToShow, setImageToShow] = useState(imageUrl);
 
   // Preload image when imageUrl changes
   useEffect(() => {
@@ -29,6 +29,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
     } else {
       setLoadedImageUrl(null);
       setImageLoading(false);
+      setImageToShow(imageUrl);
     }
   }, [imageUrl]);
 
@@ -73,10 +74,10 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="spinner border-primary-600 border-t-transparent" />
             </div>
-          ) : loadedImageUrl ? (
+          ) : imageToShow ?  (
             <motion.img
-              key={loadedImageUrl}
-              src={loadedImageUrl}
+              id="vehicle-image"
+              src={imageToShow}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
               className="w-full h-full object-cover"
               initial={{ opacity: 0 }}

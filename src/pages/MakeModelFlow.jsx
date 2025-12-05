@@ -30,6 +30,7 @@ import { saveValuationVehicle } from "../services/valuationService";
 import { getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
 import { cleanObject, formatPhone, formatUSD } from "../utils/helpers";
 import { createAppointment } from "../services/appointmentService";
+import { allowedZips } from "../utils/model";
 
 const MakeModelFlow = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const MakeModelFlow = () => {
   const [listBodyTypes, setListBodyTypes] = useState([]);
   const [imageSelected, setImageSelected] = useState("");
   const [customerJourneyId, setCustomerJourneyId] = useState("");
+  const [customerJourneyData, setCustomerJourneyData] = useState(null);
   const [branchesData, setBranchesData] = useState([]);
   const [branchesHours, setBranchesHours] = useState([]);
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
@@ -82,16 +84,24 @@ const MakeModelFlow = () => {
       navigate("/");
     } else {
       GetCustomerJourney(customerJourneyId).then(customerJourney => {
-        if (customerJourney) {
+        if(customerJourney){
+          setCustomerJourneyData(customerJourney);
           const { year, make, model } = customerJourney;
-
-          // Update vehicle data with journey data
-          updateVehicleData({
-            ...vehicleData,
-            ...customerJourney
-          });
-
-          getSeries(year, model, make).then(series => {
+          if(customerJourney.zipCode != "" && window.location.pathname.indexOf("/valuation/appointment") >= 0){
+            getBranches(customerJourney.zipCode, 1, "Physical").then(branches => {
+              sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
+              setBranchesData(branches.branchLocations);
+            }).catch(error => {
+              console.error("Error getting branches:", error);
+            });
+          }
+          
+          getSeries(year,model,make).then(series => {
+            updateVehicleData({
+              year: year,
+              make: make,
+              model: model,
+            });
             setListSeries(series);
             loadImage(series[0].imageUrl);
           }).catch(error => {
@@ -790,6 +800,7 @@ const MakeModelFlow = () => {
       getBranches(data.zipCode, 1, "Physical").then(branches => {
         sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
         setBranchesData(branches.branchLocations);
+        updateStepAndNavigate(4);
       }).catch(error => {
         console.error("Error getting branches:", error);
       });
@@ -799,7 +810,7 @@ const MakeModelFlow = () => {
       // });
 
       // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
-      updateStepAndNavigate(4);
+      
     }
 
     UpdateCustomerJourney({
@@ -1390,17 +1401,21 @@ const MakeModelFlow = () => {
                       error={errors.series?.message}
                       disabled={listSeries.length === 0}
                       id="series-select"
-                      {...register("series", {
-                        onChange: (e) => {
-                          setListBodyTypes(e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));
+                      {...register("series")}
+                      onChange={(e) => {
+                        if(e.target.value !== ""){
+                          setValue("series", e.target.value);
+                        }else{
+                          setValue("series", "");
                         }
-                      })}
+                        setListBodyTypes( e.target.value === '' ? [] : listSeries.filter(item => item.series === e.target.value));                        
+                      }}
                     />
 
                     <Select
-                      label="Select Body Type"
+                      label="Select Body Type ---"
                       options={listBodyTypes[0] ? listBodyTypes.map(item => (item.bodystyle)) : []}
-                      placeholder="Select body type"
+                      placeholder="Select body type ---"
                       error={errors.bodyType?.message}
                       disabled={listBodyTypes.length === 0}
                       id="body-type-select"
@@ -1412,6 +1427,17 @@ const MakeModelFlow = () => {
                           loadImage(urlIMG);
                         }
                       })}
+                      onChange={(e) => {
+                        const newBodyType = e.target.value;
+                        if(newBodyType !== ""){
+                          setValue("bodyType", newBodyType);
+                          // watchSeries || !watchBodyType
+                        }else{
+                          setValue("bodyType", "");
+                        }
+                        const valueImage = listBodyTypes.find(item => item.bodystyle === newBodyType)?.imageUrl || "";
+                        loadImage(valueImage)
+                      }}
                     />
 
                     <div className="pt-4">
@@ -1674,6 +1700,8 @@ const MakeModelFlow = () => {
                             value: /^\d{5}$/,
                             message: "Invalid ZIP code",
                           },
+                          validate: (value) =>
+                            allowedZips.includes(value) || "ZIP code not allowed",
                         })}
                       />
 

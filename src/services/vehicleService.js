@@ -128,8 +128,8 @@ export const createCustomerJourneyByVin = async (vin = 1, retries = 3) => {
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/vin`,
-      { visitId: 0, vin: vin },
+      `http://localhost:5001/api/customer-journey/vin`, 
+      {visitId: 1, vin: vin}, 
       { headers }
     );
     return response.data;
