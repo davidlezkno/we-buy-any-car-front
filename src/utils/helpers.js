@@ -69,7 +69,7 @@ export const getNext12Days = () => {
   const dates = [];
   const today = new Date();
 
-  for (let i = 0; i <= 7; i++) {
+  for (let i = 0; i <= 6; i++) {
     const newDate = new Date();
     newDate.setDate(today.getDate() + i);
 

@@ -55,9 +55,9 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
     }
 
     // Auto-submit when all 6 digits are entered
-    if (newOtp.every((digit) => digit !== "") && index === 5) {
-      handleSubmit(newOtp.join(""));
-    }
+    // if (newOtp.every((digit) => digit !== "") && index === 5) {
+    //   handleSubmit(newOtp.join(""));
+    // }
   };
 
   const handleKeyDown = (index, e) => {
@@ -104,12 +104,12 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
       return;
     }
 
-    setIsLoading(true);
-    setError("");
+    // setIsLoading(true);
+    // setError("");
 
     try {
       if (onVerify) {
-        await onVerify(code);
+        onVerify(code);
       }
     } catch (err) {
       setError(err.message || "Invalid code. Please try again.");
@@ -202,8 +202,8 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={index === 0 ? handlePaste : undefined}
+                    // onKeyDown={(e) => handleKeyDown(index, e)}
+                    // onPaste={index === 0 ? handlePaste : undefined}
                     className="text-center text-2xl font-bold border border-gray-300 rounded focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-all bg-white md:w-14 md:h-14"
                     style={{ width: "2.5rem", textAlign: "center", height: "2.5rem", fontSize: "1.5rem", padding: "0" }}
                     aria-label={`Please enter OTP character ${index + 1}`}

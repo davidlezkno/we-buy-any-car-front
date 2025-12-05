@@ -27,7 +27,7 @@ const Layout = ({ children }) => {
     location.pathname !== "/valuation";
   
   // Show header in mobile when showing price (step 4 - appointment)
-  const isAppointmentStep = location.pathname === "/valuation/appointment" || location.pathname.includes("/appointment");
+  const isAppointmentStep = location.pathname === "/secure/bookappointment" || location.pathname.includes("/appointment");
   
   // Always show header and footer on confirmation page (both mobile and desktop)
   const isConfirmationPage = location.pathname === "/valuation/confirmation" || location.pathname.includes("/confirmation");

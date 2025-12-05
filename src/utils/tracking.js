@@ -87,7 +87,7 @@ export const trackValuationStep = (step, stepName, vehicleData = {}) => {
     1: "/valuation",
     2: "/valuation/vehicledetails",
     3: "/valuation/vehiclecondition",
-    4: "/valuation/appointment",
+    4: "/secure/bookappointment",
   };
 
   const stepTitles = {

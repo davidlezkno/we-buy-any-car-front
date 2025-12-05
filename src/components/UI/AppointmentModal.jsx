@@ -5,7 +5,7 @@ import Button from "./Button";
 import Input from "./Input";
 import OTPModal from "./OTPModal";
 import { random3Digits } from "../../utils/helpers";
-import { sendSmS } from "../../services/appointmentService";
+import { createOnTime, sendSmS } from "../../services/appointmentService";
 
 const AppointmentModal = ({ 
   isOpen, 
@@ -31,6 +31,7 @@ const AppointmentModal = ({
   const [isSendingOTP, setIsSendingOTP] = useState(false);
   const [availableTimes, setAvailableTimes] = useState([]);
   // Function to extract only digits from phone number
+  const [phoneNumber, setPhoneNumber] = useState("");
   const getDigitsOnly = (phone) => {
     return phone.replace(/\D/g, "");
   };
@@ -70,7 +71,7 @@ const AppointmentModal = ({
         return prev;
       });
     }
-
+    
     if(branchesHours.length > 0){
       const dataHours = {
         Morning: [],
@@ -78,7 +79,21 @@ const AppointmentModal = ({
         Evening: [],
       };
       branchesHours.map(hours => {
-        const hour = parseInt(hours?.timeSlot24Hour?.split(':')[0], 10);
+        if(hours.timeOfDay){
+          if(hours.timeOfDay == "Morning"){
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "09:00" });
+          }
+
+          if(hours.timeOfDay == "Afternoon"){
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "14:00" });
+          }
+
+          if(hours.timeOfDay == "Evening"){
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "20:00" });
+          }
+          
+        }else{
+          const hour = parseInt(hours?.timeSlot24Hour?.split(':')[0], 10);
           if(hour >= 5 && hour < 12){
             dataHours['Morning'].push(hours);
           }else if(hour >= 12 && hour < 19){
@@ -87,8 +102,10 @@ const AppointmentModal = ({
           else if(hour >= 18 && hour < 24){
             dataHours['Evening'].push(hours);
           }
+        }        
       });
-      
+      console.log("dataHoursdataHoursdataHours", dataHours);
+      console.log("selectedSlotselectedSlotselectedSlot", selectedSlot);
       setAvailableTimes(dataHours[selectedSlot?.time] || []);
     }
   }, [isOpen, initialPhone]);
@@ -144,11 +161,21 @@ const AppointmentModal = ({
     if (validateForm()) {
       console.log("---- vehicleData.id ---", vehicleData);
       console.log("---- formData.telephone ---", formData);
-
       
-      // sendSmS(vehicleData.customerVehicleId, vehicleData.optionalPhoneNumber, "Your appointment has been booked successfully. Please use the following code to verify your appointment: " + random3Digits(6), 3).then(res => {
-      //   console.log("---- res sendSMS ---", res);
-      // });
+      createOnTime(vehicleData.customerVehicleId, vehicleData.closestBranchContactInfo.branchId, formData.telephone.replace(/\D/g, ""), 3).then(resOnTime => {
+        console.log("---- res createOnTime ---", resOnTime);
+
+        sendSmS(
+          vehicleData.customerVehicleId, 
+          formData.telephone.replace(/\D/g, ""), 
+          `Your appointment has been booked successfully. 
+          Please use the following code to verify your appointment: ${random3Digits(6)}`).then(resSendSMS => {
+          console.log("---- res sendSMS ---", resSendSMS);
+        });
+
+      });
+      
+      
       
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);
@@ -401,9 +428,11 @@ const AppointmentModal = ({
                     label="Telephone"
                     placeholder="Enter Telephone Number"
                     value={formData.telephone}
-                    onChange={(e) =>
+                    onChange={(e) =>{
+                      console.log("e.target.valuee.target.valuee.target.value", e.target.value);
+                      setPhoneNumber(e.target.value);
                       handleInputChange("telephone", e.target.value)
-                    }
+                    }}
                     error={errors.telephone}
                     id="appointment-modal-telephone-input"
                   />

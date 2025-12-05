@@ -32,6 +32,7 @@ const CalendarScheduler = ({
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
+    console.log("--- branchesData initialPhone ---",branchesData);
 
     if(branchesData.length > 0 ){
       const locs = branchesData.map(branch => {
@@ -277,6 +278,7 @@ const CalendarScheduler = ({
       dateFormatted: `${date.day} ${date.date}`,
       time: timeSlot,
       phone: location?.phone || "",
+      type: location?.type || "branch", // Add branch type (branch or home)
     };
 
     // If custom callback exists, use it (for opening modal)
@@ -487,8 +489,8 @@ const CalendarScheduler = ({
         </p>
       </div>
 
-      {/* Mobile View - Selects (Now also visible on desktop) */}
-      <div className="space-y-4 w-full" style={{ marginTop: 0 }}>
+      {/* Mobile View - Selects (Hidden on desktop) */}
+      <div className="space-y-4 w-full md:hidden" style={{ marginTop: 0 }}>
         {/* Step Header */}
         <div id="choose-where-to-sell-header" className="step-header">
           <span className="form-text countable" data-defaulttext="Choose Where to Sell">

@@ -31,7 +31,6 @@ import { getBrancheById, getBranches, getBranchesByCustomerVehicle } from "../se
 import { cleanObject, convertTo12Hour, formatPhone, formatUSD, getDayName, getNext12Days } from "../utils/helpers";
 import { createAppointment } from "../services/appointmentService";
 import { allowedZips } from "../utils/model";
-import * as OTPAuth from "otpauth";
 
 const MakeModelFlow = () => {
   const navigate = useNavigate();
@@ -72,7 +71,7 @@ const MakeModelFlow = () => {
         if(customerJourney){
           setCustomerJourneyData(customerJourney);
           const { year, make, model } = customerJourney;
-          if(customerJourney.zipCode != "" && window.location.pathname.indexOf("/valuation/appointment") >= 0){
+          if(customerJourney.zipCode != "" && window.location.pathname.indexOf("/secure/bookappointment") >= 0){
            handleVehicleConditionSubmit(getValues());
             // getBranches(customerJourney.zipCode, 1, "Physical").then(branches => {
             //   sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
@@ -140,7 +139,7 @@ const MakeModelFlow = () => {
     const path = location.pathname;
 
     // Map URL paths to steps
-    if (path === "/valuation/appointment" || path.includes("/appointment")) {
+    if (path === "/secure/bookappointment" || path.includes("/appointment")) {
       return 4; // Step 4: Appointment Scheduling
     }
     if (path === "/valuation/vehiclecondition" || path.includes("/vehiclecondition")) {
@@ -176,7 +175,7 @@ const MakeModelFlow = () => {
     let newStep;
 
     // Determine step from URL path - each step has a distinct URL
-    if (path === "/valuation/appointment" || path.includes("/appointment")) {
+    if (path === "/secure/bookappointment" || path.includes("/appointment")) {
       newStep = 4;
     } else if (path === "/valuation/vehiclecondition" || path.includes("/condition")) {
       newStep = 3;
@@ -221,7 +220,7 @@ const MakeModelFlow = () => {
       1: `/valuation/${id}`,
       2: `/valuation/vehicledetails/${id}`,
       3: `/valuation/vehiclecondition/${id}`,
-      4: `/valuation/appointment/${id}`,
+      4: `/secure/bookappointment/${id}`,
     };
 
 
@@ -781,7 +780,7 @@ const MakeModelFlow = () => {
       //   console.log("-----------------valuationVehicle--------------------------------", valuationVehicle);
       // });
       
-      // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
+      // Navigate to appointment step (step 4) - URL changes to /secure/bookappointment
       
     }
 
@@ -908,18 +907,33 @@ const MakeModelFlow = () => {
 
         if(branchesHours?.mobile?.branchId){
           const branch = branchesHours.mobile;
+          console.log('--branch--', branch);
           let obj = [];
             const days = getNext12Days();
             for(var i = 0; i < days.length; i++){
-              const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
-              const objData =    {
-                closeTime: "08:00 PM",
-                date: days[i],
-                dayOfWeek: getDayName(days[i]),
-                isExceptional: false,
-                openTime: "09:00 AM",
-                type: "open"
-              };    
+              const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];  
+              let objData = {} ;
+              if(fechaHora){
+                objData =    {
+                  closeTime: fechaHora[0].timeOfDay == "Afternoon" ? "01:00 PM" : (fechaHora[0].timeOfDay == "Morning" ? "09:00 AM" : "08:00 PM"),
+                  date: days[i],
+                  timeSlotId: fechaHora[0].timeSlotId,
+                  dayOfWeek: getDayName(days[i]),
+                  isExceptional: false,
+                  openTime: fechaHora[0].timeOfDay == "Afternoon" ? "01:00 PM" : (fechaHora[0].timeOfDay == "Morning" ? "11:00 AM" : "08:00 PM"),
+                  type: "open"
+                };
+              }else{
+                objData = {
+                  closeTime: "",
+                  date: days[i],
+                  dayOfWeek: getDayName(days[i]),
+                  isExceptional: false,
+                  openTime: "",
+                  type: "closed"
+                };
+              }
+                  
               if(objData.type === "open"){
                 obj.push(objData);
                 obj.push({...objData, openTime: "01:00 PM"});
@@ -945,6 +959,8 @@ const MakeModelFlow = () => {
           });
         }
         
+        console.log("---- branchesHoursData ----", branchesHoursData);
+
         setBranchesData(branchesHoursData);
 
         getBrancheById(branchesHoursData[0].branchId).then(branch => {
@@ -1013,7 +1029,7 @@ const MakeModelFlow = () => {
       damages_count: damageList.length,
     });
 
-    // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
+    // Navigate to appointment step (step 4) - URL changes to /secure/bookappointment
     updateStepAndNavigate(4);
   };
 
@@ -1069,11 +1085,12 @@ const MakeModelFlow = () => {
       reported_accident: formData.reportedAccident,
       damages_count: damageList.length,
     });
-    // Navigate to appointment step (step 4) - URL changes to /valuation/appointment
+    // Navigate to appointment step (step 4) - URL changes to /secure/bookappointment
     updateStepAndNavigate(4);
   };
 
   const handleSlotClick = (slotData) => {
+    console.log(" -- slotData --", slotData);
     const brchHours = branchesHours.length > 0 ? branchesHours : JSON.parse(sessionStorage.getItem("branchesHours"));
     const findP = brchHours?.physical?.find(branch => branch.branchId === slotData.locationId);
     const findM = brchHours?.mobile?.branchId === slotData.locationId ? brchHours.mobile : null;
@@ -1111,17 +1128,9 @@ const MakeModelFlow = () => {
       appointment_location: appointmentData.location,
     });
 
-
-    
-
     
     const branchSelect = branchesData.find(branch => branch.branchId === appointmentData.locationId);
 
-    const secret = OTPAuth.Secret.fromUTF8(`${vehicleData.customerVehicleId}${otpSecret}`);
-    const totp = new OTPAuth.TOTP({ secret });
-    const otpCode = totp.generate();
-
-      console.log("---- otpCode ---", otpCode);console.log("OTP Code:", otpCode);
     createAppointment({
       "customerVehicleId": vehicleData.customerVehicleId,
       "branchId": appointmentData.locationId,
@@ -1136,24 +1145,28 @@ const MakeModelFlow = () => {
       "city": appointmentData.location,
       "model": vehicleData.model,
       "visitId": vehicleData.vid,
-      "otpCode": otpCode
+      "otpCode": appointmentData.otpCode
     }).then(response => {
-      console.log("---- response ---", response);
-      updateVehicleData({
-        ...vehicleData,
-        branchInfo: branchSelect,
-      });
-      updateAppointmentInfo(selectedAppointment);
-      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
+      if(response){
+          updateVehicleData({
+            ...vehicleData,
+            branchInfo: branchSelect,
+          });
+          updateAppointmentInfo(selectedAppointment);
+          navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
+      }else{
+        alert("The OTP you entered is invalid or has expired. Please try again");
+      }
+      
     }).catch(error => {
-      updateVehicleData({
-        ...vehicleData,
-        branchInfo: branchSelect,
-      });
-      updateAppointmentInfo(selectedAppointment);
-      alert("Error creating appointment");
-      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
-      console.error("Error creating appointment:", error);
+      // updateVehicleData({
+      //   ...vehicleData,
+      //   branchInfo: branchSelect,
+      // });
+      // updateAppointmentInfo(selectedAppointment);
+      alert("The OTP you entered is invalid or has expired. Please try again");
+      // navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
+      // console.error("Error creating appointment:", error);
     });
 
   };
@@ -2735,49 +2748,42 @@ const MakeModelFlow = () => {
                           <OTPModal
                             isOpen={showOTPModal}
                             onClose={() => {
-                              console.log("---- onClose ---");
                               setShowOTPModal(false);
                               setPendingAppointmentData(null);
                             }}
                             phoneNumber={pendingAppointmentData.contactInfo?.telephone || pendingAppointmentData.phone || ""}
-                            onVerify={async (otpCode) => {
+                            onVerify={(otpCode) => {
                               console.log("---- otpCode ---", otpCode);
-                              // TODO: Replace with actual API call to verify OTP
-                              // Simulate OTP verification
-                              return new Promise((resolve, reject) => {
-                                setTimeout(() => {
-                                  // For demo purposes, accept any 6-digit code
-                                  if (otpCode.length === 6) {
-                                    // OTP verified successfully
-                                    // Confirm the appointment
-                                    handleAppointmentConfirm(pendingAppointmentData);
-                                    
-                                    // Update appointment info and track analytics
-                                    updateAppointmentInfo(pendingAppointmentData);
-                                    
-                                    // Track appointment confirmation for analytics
-                                    trackAppointmentConfirm({
-                                      date: pendingAppointmentData.date,
-                                      time: pendingAppointmentData.time || pendingAppointmentData.specificTime?.timeSlot24Hour,
-                                      location: pendingAppointmentData.location,
-                                      locationId: pendingAppointmentData.locationId,
-                                    });
-                                    
-                                    // Close OTP modal
-                                    setShowOTPModal(false);
-                                    setPendingAppointmentData(null);
-                                    
-                                    // Navigate to confirmation page
-                                    setTimeout(() => {
-                                      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
-                                    }, 100);
-                                    
-                                    resolve();
-                                  } else {
-                                    reject(new Error("Invalid code. Please try again."));
-                                  }
-                                }, 1000);
-                              });
+                              
+                              // For demo purposes, accept any 6-digit code
+                              
+                                // OTP verified successfully
+                                // Confirm the appointment
+                                // handleAppointmentConfirm({...pendingAppointmentData, otpCode: otpCode});
+                                
+                                // Update appointment info and track analytics
+                                // updateAppointmentInfo(pendingAppointmentData);
+                                
+                                // Track appointment confirmation for analytics
+                                // trackAppointmentConfirm({
+                                //   date: pendingAppointmentData.date,
+                                //   time: pendingAppointmentData.time || pendingAppointmentData.specificTime?.timeSlot24Hour,
+                                //   location: pendingAppointmentData.location,
+                                //   locationId: pendingAppointmentData.locationId,
+                                // });
+                                
+                                // Close OTP modal
+                                // setShowOTPModal(false);
+                                // setPendingAppointmentData(null);
+                                
+                                // // Navigate to confirmation page
+                                // setTimeout(() => {
+                                //   navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
+                                // }, 100);
+                                
+                                // resolve();
+                              
+
                             }}
                             onResendCode={async () => {
                               console.log("---- onResendCode ---");
@@ -2789,8 +2795,8 @@ const MakeModelFlow = () => {
                             }}
                             onChangePhone={() => {
                               // Close OTP modal and return to form
-                              setShowOTPModal(false);
-                              setPendingAppointmentData(null);
+                              // setShowOTPModal(false);
+                              // setPendingAppointmentData(null);
                             }}
                           />
                         )}
