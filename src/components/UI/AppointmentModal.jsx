@@ -78,7 +78,7 @@ const AppointmentModal = ({
         Evening: [],
       };
       branchesHours.map(hours => {
-        const hour = parseInt(hours.timeSlot24Hour.split(':')[0], 10);
+        const hour = parseInt(hours?.timeSlot24Hour?.split(':')[0], 10);
           if(hour >= 5 && hour < 12){
             dataHours['Morning'].push(hours);
           }else if(hour >= 12 && hour < 19){

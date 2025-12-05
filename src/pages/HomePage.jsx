@@ -9,7 +9,8 @@ import ProcessStepsSection from "../components/Home/ProcessStepsSection";
 import DisclaimerSection from "../components/Home/DisclaimerSection";
 import VINHelpModal from "../components/UI/VINHelpModal";
 import { useApp } from "../context/AppContext";
-import { createCustomerJourney } from "../services/vehicleService";
+import { createCustomerJourney, createVisitorID } from "../services/vehicleService";
+import { setCookie } from "../utils/helpers";
 
 // HomePage composes the homepage journey while delegating presentation to section components.
 const HomePage = () => {
@@ -21,17 +22,26 @@ const HomePage = () => {
   const handleMakeModelSubmit = useCallback(
     (vehicleDetails) => {
 
-      const { year, make, model } = vehicleDetails;
-      createCustomerJourney(year,make,model,1).then(rps => {
-        localStorage.setItem("customerJourneyId", rps.customerJourneyId);
-        updateVehicleData(vehicleDetails);
-        navigate(`/valuation/vehicledetails/${rps.customerJourneyId}`);
-        // navigate(`/valuation/vehicledetails`);
+      createVisitorID().then(visitor => {
+        // Guardar visitorId en cookie (7 días de expiración)
+        setCookie("visitorId", visitor.visitorId, { expires: 7 });
+        
+        const { year, make, model } = vehicleDetails;
+        createCustomerJourney(year,make,model,visitor.visitorId).then(rps => {
+          localStorage.setItem("customerJourneyId", rps.customerJourneyId);
+          updateVehicleData(vehicleDetails);
+          navigate(`/valuation/vehicledetails/${rps.customerJourneyId}`);
+          // navigate(`/valuation/vehicledetails`);
+        }).catch(_error => {
+          navigate("/valuation/vehicledetails");
+        }).catch(error => {
+          console.error("Error Create customer journey:", error);
+        });
       }).catch(error => {
-        navigate("/valuation/vehicledetails");
-      }).catch(error => {
-        console.error("Error Create customer journey:", error);
+        console.error("Error creating visitor ID:", error);
       });
+
+      
 
       
     },

@@ -5,6 +5,7 @@
 
 import axios from 'axios';
 import httpClient from './utils/httpClient';
+import { random10Digits } from '../utils/helpers';
 
 // External API endpoints
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
@@ -97,6 +98,26 @@ export const getVehicleMakes = async (year, retries = 3) => {
     console.error('Get makes error:', error);
     if (retries === 0) return [];
     return getVehicleMakes(year, retries - 1);
+  }
+};
+
+export const createVisitorID = async (retries = 3) => {
+  
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    const response = await httpClient.post(
+      `http://localhost:5001/api/Attribution/visitor`, 
+      { oldVisitorId: random10Digits()}, 
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Create customer journey error:', error);
+    if (retries === 0) return [];
+    return createVisitorID(retries - 1);
   }
 };
 

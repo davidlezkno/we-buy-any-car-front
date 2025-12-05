@@ -25,7 +25,7 @@ import CalendarScheduler from "../components/UI/CalendarScheduler";
 import AppointmentModal from "../components/UI/AppointmentModal";
 import OTPModal from "../components/UI/OTPModal";
 import ValuationTabs from "../components/Home/ValuationTabs";
-import { CustomerDetailJourney, GetCustomerJourney, getImageVehicle, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
+import { createVisitorID, CustomerDetailJourney, GetCustomerJourney, getImageVehicle, getSeries, UpdateCustomerJourney } from "../services/vehicleService";
 import { saveValuationVehicle } from "../services/valuationService";
 import { getBrancheById, getBranches, getBranchesByCustomerVehicle } from "../services/branchService";
 import { cleanObject, convertTo12Hour, formatPhone, formatUSD, getDayName, getNext12Days } from "../utils/helpers";
@@ -67,6 +67,7 @@ const MakeModelFlow = () => {
     if(!customerJourneyId){
       navigate("/");
     }else{
+
       GetCustomerJourney(customerJourneyId).then(customerJourney => {
         if(customerJourney){
           setCustomerJourneyData(customerJourney);
@@ -105,12 +106,12 @@ const MakeModelFlow = () => {
               if([...new Set(series.map(item => (item.series)))].length === 1 && dat.length === 1){
                 handleSeriesBodySubmit({series:series[0].series,bodyType:dat[0].bodystyle});
               }
+              loadImage(series[0].imageUrl);
 
             }
 
             
 
-            loadImage(series[0].imageUrl);
           }).catch(error => {
             console.error("Error getting series:", error);
           });
@@ -266,6 +267,7 @@ const MakeModelFlow = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
     watch,
     setValue,
@@ -773,13 +775,7 @@ const MakeModelFlow = () => {
         odometer: data.odometer,
       });
       
-      getBranches(data.zipCode, 1, "Physical").then(branches => {
-        // sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
-        // setBranchesData(branches.branchLocations);
-        // updateStepAndNavigate(4);
-      }).catch(error => {
-        console.error("Error getting branches:", error);
-      });
+      
 
       // await getValuationVehicle(vehicleData.customerVehicleId).then(valuationVehicle => {
       //   console.log("-----------------valuationVehicle--------------------------------", valuationVehicle);
@@ -831,9 +827,7 @@ const MakeModelFlow = () => {
         ...cleanData
       }));
 
-      if(data.email !== ""){
-
-      }
+      
 
       saveValuationVehicle({
         "cvid":cleanData.customerVehicleId,
@@ -849,10 +843,18 @@ const MakeModelFlow = () => {
         "customerHasOptedIntoSmsMessages": data.receiveSMS,
         "captchaMode": "true"
       }).then(response => {
-        setLoadingValuation(false);
-        setValuation({formattedValue:formatUSD(response.valuationAmount)});
-        getBranchesDataByZipMakeModel(data.zipCode, cleanData.customerVehicleId)
-
+        if(response != null){
+          setLoadingValuation(false);
+          setValuation({formattedValue:formatUSD(response.valuationAmount)});
+          getBranchesDataByZipMakeModel(data.zipCode, cleanData.customerVehicleId)
+        }else{
+          setValue("zipCode", "");
+          setError("zipCode", {
+            type: "manual",
+            message: "Please enter the ZIP code closest to where you intend to sell the vehicle",
+          });
+          
+        }
       }).catch(error => {
         console.error("Error saving valuation vehicle:", error);
       });
@@ -1786,8 +1788,6 @@ const MakeModelFlow = () => {
                             value: /^\d{5}$/,
                             message: "Invalid ZIP code",
                           },
-                          validate: (value) =>
-                            allowedZips.includes(value) || "ZIP code not allowed",
                         })}
                       />
 

@@ -1213,12 +1213,27 @@ const Confirmation = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(branchInfo.hours).map(([day, hours]) => (
-                      <tr key={day} className="border-b border-gray-100">
-                        <td className="py-2 px-2 text-gray-700">{day}</td>
-                        <td className="py-2 px-2 text-gray-700">{hours}</td>
-                      </tr>
-                    ))}
+                    {Object.entries(branchInfo.hours).map(([day, hours]) => {
+                      // Convert hours to string if it's an object
+                      const hoursDisplay = typeof hours === 'object' && hours !== null
+                        ? Object.entries(hours)
+                            .filter(([_, available]) => available)
+                            .map(([period]) => period)
+                            .join(', ') || 'Closed'
+                        : hours;
+                      
+                      // Convert day index to day name if needed
+                      const dayName = typeof day === 'number' || (typeof day === 'string' && /^\d+$/.test(day))
+                        ? weekDays[parseInt(day)] || day
+                        : day;
+                      
+                      return (
+                        <tr key={day} className="border-b border-gray-100">
+                          <td className="py-2 px-2 text-gray-700">{dayName}</td>
+                          <td className="py-2 px-2 text-gray-700">{hoursDisplay}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
                 <div className="mt-4 text-xs text-gray-500 italic">

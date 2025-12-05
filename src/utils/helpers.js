@@ -43,6 +43,12 @@ export const getGoogleMapsEmbedUrl = (lat, lng) => {
   return `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v${Date.now()}`;
 }
 
+export const isMobileDevice = () => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  console.log("---- isMobile ---", isMobile);
+  return isMobile;
+}
+
 export const getPeriod = (time) => {
   // time debe venir en formato "HH:MM AM/PM"
   const [hourMinute, modifier] = time.split(" ");
@@ -80,6 +86,11 @@ export const getNext12Days = () => {
 export const random3Digits = () => {
   const num = Math.floor(100 + Math.random() * 900);
   return num.toString();
+}
+  
+export const random10Digits = () => {
+  const numero = Math.floor(1000000000 + Math.random() * 9000000000);
+  return numero;
 }
 
 export const formatPhone = (phone) =>{
@@ -227,6 +238,95 @@ export const scrollToTop = (smooth = true) => {
 };
 
 /**
+ * Cookie Management Utilities
+ * Using js-cookie library for secure cookie handling
+ */
+import Cookies from 'js-cookie';
+
+/**
+ * Set a cookie with secure defaults
+ * @param {string} key - Cookie name
+ * @param {any} value - Value to store (will be JSON stringified if object)
+ * @param {object} options - Cookie options (expires, path, domain, secure, sameSite)
+ * @returns {boolean} Success status
+ */
+export const setCookie = (key, value, options = {}) => {
+  try {
+    const defaultOptions = {
+      expires: 7, // 7 days default
+      path: '/',
+      sameSite: 'strict', // CSRF protection
+      secure: window.location.protocol === 'https:', // Only in HTTPS
+      ...options,
+    };
+
+    // Stringify if value is an object
+    const cookieValue = typeof value === 'object' ? JSON.stringify(value) : value;
+    
+    Cookies.set(key, cookieValue, defaultOptions);
+    return true;
+  } catch (error) {
+    console.error(`Error setting cookie "${key}":`, error);
+    return false;
+  }
+};
+
+/**
+ * Get a cookie value
+ * @param {string} key - Cookie name
+ * @param {boolean} parseJson - Whether to parse JSON (default: true)
+ * @returns {any} Cookie value or null
+ */
+export const getCookie = (key, parseJson = true) => {
+  try {
+    const value = Cookies.get(key);
+    if (!value) return null;
+
+    // Try to parse as JSON if it looks like JSON
+    if (parseJson && (value.startsWith('{') || value.startsWith('['))) {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  } catch (error) {
+    console.error(`Error getting cookie "${key}":`, error);
+    return null;
+  }
+};
+
+/**
+ * Remove a cookie
+ * @param {string} key - Cookie name
+ * @param {object} options - Cookie options (path, domain)
+ * @returns {boolean} Success status
+ */
+export const removeCookie = (key, options = {}) => {
+  try {
+    const defaultOptions = {
+      path: '/',
+      ...options,
+    };
+    Cookies.remove(key, defaultOptions);
+    return true;
+  } catch (error) {
+    console.error(`Error removing cookie "${key}":`, error);
+    return false;
+  }
+};
+
+/**
+ * Check if a cookie exists
+ * @param {string} key - Cookie name
+ * @returns {boolean} Whether cookie exists
+ */
+export const hasCookie = (key) => {
+  return Cookies.get(key) !== undefined;
+};
+
+/**
  * Save to local storage
  */
 export const saveToLocalStorage = (key, data) => {
@@ -356,6 +456,10 @@ export default {
   saveToLocalStorage,
   getFromLocalStorage,
   removeFromLocalStorage,
+  setCookie,
+  getCookie,
+  removeCookie,
+  hasCookie,
   isMobile,
   copyToClipboard,
   downloadAsFile,

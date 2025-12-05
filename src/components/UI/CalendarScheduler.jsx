@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
-import { getGoogleMapsEmbedUrl, getPeriod } from "../../utils/helpers";
+import { getGoogleMapsEmbedUrl, getPeriod, isMobileDevice } from "../../utils/helpers";
 import { getBrancheById } from "../../services/branchService";
 import { weekDays } from "../../utils/model";
 
@@ -34,10 +34,6 @@ const CalendarScheduler = ({
   useEffect(() => {
 
     if(branchesData.length > 0 ){
-
-      
-
-      
       const locs = branchesData.map(branch => {
         let obj = {};
         for(let i = 0; i < branch.operationHours.length; i++){
@@ -69,6 +65,11 @@ const CalendarScheduler = ({
       console.log(" ==== locs ==== ", locs);
 
       setLocations(locs);
+    }
+
+    if (isMobileDevice()) {
+      const btn = document.getElementById("mobile-toggle");
+      if (btn) btn.click();
     }
   }, [branchesData]);
   
@@ -486,6 +487,7 @@ const CalendarScheduler = ({
         </p>
       </div>
 
+      
       {/* Mobile View - Selects */}
       <div className="md:hidden space-y-4 w-full" style={{ marginTop: 0 }}>
         {/* Step Header */}
