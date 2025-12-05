@@ -48,7 +48,7 @@ httpClient.interceptors.response.use(
     if (error.response) {
       // Server responded with error status
       const { status, data } = error.response;
-
+      
       switch (status) {
         case 401:
           // Handle unauthorized
@@ -76,7 +76,7 @@ httpClient.interceptors.response.use(
       // Something else happened
       console.error('Error:', error.message);
     }
-
+    
     return Promise.reject(error);
   }
 );

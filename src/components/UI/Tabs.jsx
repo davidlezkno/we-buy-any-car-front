@@ -33,14 +33,14 @@ const Tabs = ({
   return (
     <div className={clsx("w-full", className)}>
       {/* Tab Navigation: Smaller white container, centered */}
-      <div className="flex justify-center mb-6 md:mb-8 max-w-2xl mx-auto md:max-w-none">
-        <div className="flex gap-0.5 sm:gap-2 md:gap-3 sm:!p-2 md:!p-3 rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-white shadow-md w-full md:w-auto md:inline-flex" style={{ padding: '0.4rem' }}>
+      <div className="flex justify-center mb-6 md:mb-8">
+        <div className="flex gap-2 md:gap-3 p-2 md:p-3 rounded-2xl md:rounded-3xl overflow-x-auto scrollbar-hide bg-white shadow-md w-auto inline-flex">
           {tabs.map((tab, index) =>
             activeTab === index ? (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="relative px-1.5 sm:px-3 md:px-6 py-1.5 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl md:rounded-2xl font-bold text-[10px] sm:text-sm md:text-base transition-all duration-500 flex-1 sm:flex-none flex items-center justify-center gap-0.5 sm:gap-2 text-white min-w-0"
+                className="relative px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-sm md:text-base transition-all duration-500 flex-shrink-0 flex items-center gap-2 text-white"
                 style={{
                   background:
                     "linear-gradient(135deg, #20B24D 0%, #1a9a3e 50%, #158234 100%)",
@@ -51,18 +51,18 @@ const Tabs = ({
                 whileTap={{ scale: 0.98 }}
                 id={`${tab.id}-tab-active-button`}
               >
-                {tab.icon && <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />}
-                <span className="whitespace-nowrap truncate leading-tight">{tab.label}</span>
+                {tab.icon && <tab.icon className="w-4 h-4 md:w-5 md:h-5" />}
+                <span className="whitespace-nowrap">{tab.label}</span>
               </motion.button>
             ) : (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="flex items-center justify-center gap-0.5 sm:gap-2 px-1.5 sm:px-3 md:px-6 py-1.5 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl md:rounded-2xl font-semibold text-[10px] sm:text-sm md:text-base transition-colors duration-300 flex-1 sm:flex-none text-gray-700 hover:text-gray-900 min-w-0"
+                className="flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base transition-colors duration-300 flex-shrink-0 text-gray-700 hover:text-gray-900"
                 id={`${tab.id}-tab-inactive-button`}
               >
-                {tab.icon && <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />}
-                <span className="whitespace-nowrap truncate leading-tight">{tab.label}</span>
+                {tab.icon && <tab.icon className="w-4 h-4 md:w-5 md:h-5" />}
+                <span className="whitespace-nowrap">{tab.label}</span>
               </button>
             ),
           )}
