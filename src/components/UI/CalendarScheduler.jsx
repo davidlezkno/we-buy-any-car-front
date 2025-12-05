@@ -486,8 +486,8 @@ const CalendarScheduler = ({
         </p>
       </div>
 
-      {/* Mobile View - Selects */}
-      <div className="md:hidden space-y-4 w-full" style={{ marginTop: 0 }}>
+      {/* Mobile View - Selects (Now also visible on desktop) */}
+      <div className="space-y-4 w-full" style={{ marginTop: 0 }}>
         {/* Step Header */}
         <div id="choose-where-to-sell-header" className="step-header">
           <span className="form-text countable" data-defaulttext="Choose Where to Sell">

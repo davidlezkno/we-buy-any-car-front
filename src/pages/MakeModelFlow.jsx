@@ -1240,7 +1240,11 @@ const MakeModelFlow = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-2xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 tracking-tight">
+<<<<<<< HEAD
             Vehicle Condition
+=======
+              Vehicle Condition
+>>>>>>> parent of 5275297 (cambio de estilos)
             </h1>
           </motion.div>
         )}
@@ -1583,7 +1587,11 @@ const MakeModelFlow = () => {
                       "0 20px 60px 0 rgba(31, 38, 135, 0.2), 0 8px 24px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.95)",
                   }}
                 >
+<<<<<<< HEAD
                   <div className="mb-8">
+=======
+                  <div className="mb-4">
+>>>>>>> parent of 5275297 (cambio de estilos)
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
                       Vehicle Condition & Your Information
                     </h2>
@@ -1609,7 +1617,11 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1621,7 +1633,11 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1647,7 +1663,11 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1659,7 +1679,11 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1685,7 +1709,11 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1697,7 +1725,11 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1727,7 +1759,11 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1739,7 +1775,11 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
+<<<<<<< HEAD
                               className="w-5 h-5 text-primary-600"
+=======
+                              className="w-5 h-5 accent-[#20B24D]"
+>>>>>>> parent of 5275297 (cambio de estilos)
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
