@@ -1112,7 +1112,7 @@ const MakeModelFlow = () => {
   }
 
   return (
-    <div className="section-container pt-4 pb-8 md:pt-4 md:pb-12 relative overflow-hidden">
+    <div className="section-container pt-0 pb-8 md:pt-4 md:pb-12 relative overflow-hidden">
       {/* Efectos de fondo decorativos */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-10 w-96 h-96 bg-primary-100/30 rounded-full blur-[120px]"></div>
@@ -1128,12 +1128,12 @@ const MakeModelFlow = () => {
         {/* Header: Improved spacing and glass design */}
         {step !== 4 && (
           <motion.div
-            className="mb-8"
+            className="!mb-[10px] md:mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-2xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 tracking-tight">
+            <h1 className="text-[20px] md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 tracking-tight text-center md:text-left">
               Vehicle Condition
             </h1>
           </motion.div>
@@ -1461,8 +1461,11 @@ const MakeModelFlow = () => {
                   }}
                 >
                   <div className="mb-4">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight hidden md:block">
                       Vehicle Condition & Your Information
+                    </h2>
+                    <h2 className="text-base font-bold text-gray-900 mb-3 tracking-tight md:hidden" style={{ fontSize: '16px' }}>
+                      {vehicleData?.year} {vehicleData?.make} {vehicleData?.model}
                     </h2>
                   </div>
 
@@ -1486,7 +1489,8 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1498,7 +1502,8 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1524,7 +1529,8 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1536,7 +1542,8 @@ const MakeModelFlow = () => {
                               {...register("hasIssues", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1562,7 +1569,8 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1574,7 +1582,8 @@ const MakeModelFlow = () => {
                               {...register("hasAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1604,7 +1613,8 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1616,7 +1626,8 @@ const MakeModelFlow = () => {
                               {...register("hasClearTitle", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 accent-[#20B24D]"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1872,7 +1883,8 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1884,7 +1896,8 @@ const MakeModelFlow = () => {
                               {...register("runsAndDrives", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1911,7 +1924,8 @@ const MakeModelFlow = () => {
                               {...register("hasFloodTheftSalvage", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1923,7 +1937,8 @@ const MakeModelFlow = () => {
                               {...register("hasFloodTheftSalvage", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1951,7 +1966,8 @@ const MakeModelFlow = () => {
                                 "hasTaxiDrivingSchoolLawEnforcement",
                                 { required: "This field is required" },
                               )}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -1964,7 +1980,8 @@ const MakeModelFlow = () => {
                                 "hasTaxiDrivingSchoolLawEnforcement",
                                 { required: "This field is required" },
                               )}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -1990,7 +2007,8 @@ const MakeModelFlow = () => {
                               {...register("odometerChanged", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -2002,7 +2020,8 @@ const MakeModelFlow = () => {
                               {...register("odometerChanged", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>
@@ -2028,7 +2047,8 @@ const MakeModelFlow = () => {
                               {...register("reportedAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700">Yes</span>
                           </label>
@@ -2040,7 +2060,8 @@ const MakeModelFlow = () => {
                               {...register("reportedAccident", {
                                 required: "This field is required",
                               })}
-                              className="w-5 h-5 text-primary-600"
+                              className="w-5 h-5"
+                              style={{ accentColor: '#1ca243' }}
                             />
                             <span className="text-gray-700 font-bold">No</span>
                           </label>

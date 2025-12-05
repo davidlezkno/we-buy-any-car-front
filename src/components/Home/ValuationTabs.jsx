@@ -525,7 +525,7 @@ const ValuationTabs = ({
         >
           {!hideHeaderAndTabs && (
             <div className="text-center">
-              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl md:max-w-3xl mx-auto leading-relaxed">
                 For the Most Accurate Valuation,{" "}
                 <button
                   onClick={() => onTabChange(1)}

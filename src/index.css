@@ -99,6 +99,11 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+
+  /* Radio button accent color */
+  input[type="radio"] {
+    accent-color: #1ca243 !important;
+  }
 }
 
 @layer components {
