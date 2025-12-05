@@ -11,7 +11,7 @@ export const getBranches = async (zipCode, limit, type, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`, { headers });
+    const response = await httpClient.get(`api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -26,7 +26,7 @@ export const getBrancheById = async (idBranch, retries = 3) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/content/branches/${idBranch}`, { headers });
+    const response = await httpClient.get(`api/content/branches/${idBranch}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -41,7 +41,7 @@ export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId, r
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/Appointment/availability/${zipCode}/${customerVehicleId}`, { headers });
+    const response = await httpClient.get(`api/Appointment/availability/${zipCode}/${customerVehicleId}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);

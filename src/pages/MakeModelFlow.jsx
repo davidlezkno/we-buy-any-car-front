@@ -1236,12 +1236,12 @@ const MakeModelFlow = () => {
         {/* Header: Improved spacing and glass design */}
         {step !== 4 && (
           <motion.div
-            className="mb-8"
+            className="mb-0 md:mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-2xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 tracking-tight">
+            <h1 className="text-[20px] md:text-2xl lg:text-3xl font-bold text-gray-900 mb-[15px] md:mb-6 tracking-tight text-center md:text-left">
             Vehicle Condition
             </h1>
           </motion.div>
@@ -1262,7 +1262,7 @@ const MakeModelFlow = () => {
         )}
 
         <div
-          className={`grid ${step === 4 ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"} gap-4 lg:gap-12 container-cards-info w-full`}
+          className={`grid ${step === 4 ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-2"} gap-0 lg:gap-12 container-cards-info w-full`}
           style={{ maxWidth: "100%", boxSizing: "border-box" }}
         >
           {/* Improved: More space between cards */}
@@ -1585,8 +1585,8 @@ const MakeModelFlow = () => {
                       "0 20px 60px 0 rgba(31, 38, 135, 0.2), 0 8px 24px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.95)",
                   }}
                 >
-                  <div className="mb-8">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+                  <div className="mb-0 md:mb-8">
+                    <h2 className="text-[16px] md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
                       Vehicle Condition & Your Information
                     </h2>
                   </div>
@@ -1596,7 +1596,7 @@ const MakeModelFlow = () => {
                     className="space-y-7"
                   >
                     {/* Vehicle Condition Questions */}
-                    <div className="space-y-6 pb-6 border-b border-gray-200">
+                    <div className="space-y-4 pb-0 md:space-y-6 md:pb-6 md:border-b md:border-gray-200">
                       <div>
                         <label className="label mb-3 block">
                           Does Your Car Run and Drive?
@@ -1983,7 +1983,7 @@ const MakeModelFlow = () => {
                     className="space-y-7"
                   >
                     {/* Additional questions */}
-                    <div className="space-y-6 pb-6 border-b border-gray-200">
+                    <div className="space-y-4 pb-0 md:space-y-6 md:pb-6 md:border-b md:border-gray-200">
                       <div>
                         <label className="label mb-3 block">
                           Does your car run and drive?
