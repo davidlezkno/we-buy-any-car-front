@@ -706,7 +706,6 @@ const MakeModelFlow = () => {
   };
 
   const handleVehicleConditionSubmit = (data) => {
-    console.log("(((((((((((((((((((((((((((customerJourneyData", customerJourneyData);
     if(data.email == ""){
       data = customerJourneyData?.customerVehicleId ? {
         ...customerJourneyData,
@@ -2338,7 +2337,7 @@ const MakeModelFlow = () => {
                     {/* Special information for vehicles that don't run */}
                     <div className="bg-white rounded-3xl p-6 md:p-10 shadow-lg">
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Contenido principal - 2 columnas */}
+                        {/* Main content - 2 columns */}
                         <div className="lg:col-span-2 space-y-6">
                           <div>
                             <p className="text-lg md:text-xl text-gray-900 mb-4 leading-relaxed">
@@ -2402,7 +2401,7 @@ const MakeModelFlow = () => {
                           </div>
                         </div>
 
-                        {/* Trust badges - Columna derecha */}
+                        {/* Trust badges - Right column */}
                         <div className="lg:col-span-1 space-y-4">
                           {/* BBB Badge */}
                           <div className="bg-blue-600 text-white p-4 rounded-lg text-center">
@@ -2468,7 +2467,7 @@ const MakeModelFlow = () => {
                       </div>
 
                       <div className="relative z-10">
-                        {/* Contenido principal: Layout vertical en mobile, horizontal en desktop */}
+                        {/* Main content: Vertical layout on mobile, horizontal on desktop */}
                         <div className="flex flex-col md:grid md:grid-cols-3 items-center gap-5 md:gap-8" style={{ alignItems: "start" }}>
                           {/* Left: Logo - Desktop only */}
                           <div className="hidden md:flex justify-center order-2 md:order-1">
@@ -2498,9 +2497,9 @@ const MakeModelFlow = () => {
                             </div>
                           </div>
 
-                          {/* Mobile: Trust badges arriba, Desktop: Right */}
+                          {/* Mobile: Trust badges on top, Desktop: Right */}
                           <div className="hidden md:flex flex-col items-center md:items-start gap-3 order-2 md:order-3 w-full md:w-auto" style={{ alignSelf: "start", paddingTop: "20px" }}>
-                            {/* BBB Badge - Solo imagen */}
+                            {/* BBB Badge - Image only */}
                             <a
                               href="http://www.bbb.org/washington-dc-eastern-pa/business-reviews/auto-dealers-used-cars/webuyanycar-com-in-media-pa-235989197/#bbbonlineclick"
                               target="_blank"

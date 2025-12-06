@@ -30,7 +30,6 @@ const HomePage = () => {
     const visitorId = getCookie("visitorId");
     if(visitorId){
       GetCustomerJourneyByVisit(visitorId).then(data => {
-        console.log(data);
         if(data.currentAppointment){
           setAppointmentData(data);
         }
@@ -185,8 +184,8 @@ const HomePage = () => {
       <Popup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
-        title="Título del Popup"
-        subtitle="Subtítulo opcional"
+        title="Popup Title"
+        subtitle="Optional Subtitle"
         description={description}
         onButton1Click={handleButton1}
         onButton2Click={handleButton2}
