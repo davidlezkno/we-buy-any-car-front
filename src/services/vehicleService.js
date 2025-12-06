@@ -5,10 +5,9 @@
 
 import axios from 'axios';
 import httpClient from './utils/httpClient';
-<<<<<<< HEAD
+
 import { random10Digits } from '../utils/helpers';
-=======
->>>>>>> 5ac223378d2c1cb94805c64bfa2ca1388acd7ac5
+
 
 // External API endpoints
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';

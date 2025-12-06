@@ -21,7 +21,10 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
   // Only show waiting message if we don't have the minimum required vehicle data
   if (!vehicle || !vehicle.year || !vehicle.make || !vehicle.model) {
     return (
-      <div className={`card ${isStep2 ? "block lg:block" : "hidden lg:block"}`}>
+      <div 
+        className={`card ${isStep2 ? "block lg:block" : "hidden lg:block"}`}
+        style={{ maxWidth: '465px' }}
+      >
         <div className="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center">
           <div className="text-center">
             <Car className="w-16 h-16 text-gray-300 mx-auto mb-2" />
@@ -41,6 +44,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.3 }}
         className={`card ${isStep2 ? "block lg:block" : "hidden lg:block"}`}
+        style={{ maxWidth: '465px' }}
       >
         {/* Header: Improved spacing */}
         <div className="mb-3">
@@ -63,7 +67,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
               id="vehicle-image"
               src={imageToShow}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}

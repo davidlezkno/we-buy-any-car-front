@@ -80,9 +80,10 @@ const Header = () => {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="bg-black rounded-xl p-4 md:p-3 flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors flex-shrink-0 min-w-[48px] min-h-[48px]"
+              className="bg-black rounded-xl p-4 md:p-3 flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors flex-shrink-0 min-w-[48px] min-h-[48px] mobile-menu-toggle-button"
               aria-label="Toggle menu"
               id="mobile-menu-toggle-button"
+              style={{ height: '64px' }}
             >
               <ChevronDown
                 className={`w-4 h-4 md:w-5 md:h-5 text-white transition-transform duration-200 ${mobileMenuOpen ? "rotate-180" : ""}`}
@@ -109,7 +110,7 @@ const Header = () => {
             <Link
               to="https://www.webuyanycarusa.com/locations"
               className="black box bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors font-semibold relative inline-flex items-center text-base"
-            >
+            ><div class="absolute -top-6 -left-6 w-16 h-10 z-10 transform -rotate-12"><svg id="location-link-badge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122 65" class="w-full h-full"><path d="M2.052 41.32s0-21.049 6.77-32.578a14.685 14.685 0 0 1 7.507-6.744L72.677 4.06l26.34 21.735c9.24 1.018 16.136 2.952 18.936 6.795a38.94 38.94 0 0 1 1.603 11.555c-1.527 9.62-13.438 8.5-13.438 8.5h-1.196a10.766 10.766 0 0 1-21.48 0H38.14a10.766 10.766 0 0 1-21.48 0h-1.247S1.416 53.967 2.001 41.32z" fill="#fcb813" stroke="#000" stroke-width="5"></path><text text-anchor="middle" x="47" y="43" class="location-link-text" font-size="38" font-weight="bold" fill="black" font-family="Arial, sans-serif">126</text></svg></div>
               Locations
             </Link>
 

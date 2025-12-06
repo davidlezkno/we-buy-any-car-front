@@ -413,7 +413,7 @@ const ValuationTabs = ({
               />
               <div className="mt-3 text-center">
                 <button
-                  onClick={onOpenVinHelp(vinValue)}
+                  onClick={onOpenVinHelp}
                   className="text-primary-600 hover:text-primary-700 underline text-sm md:text-base font-semibold"
                   id="where-can-i-find-vin-button"
                 >
@@ -517,8 +517,8 @@ const ValuationTabs = ({
   );
 
   return (
-    <section className="bg-gray-100 pt-0 pb-0 md:pt-8 pb-1">
-      <div className="section-container md:mt-2 relative z-20">
+    <section className="bg-gray-100 pt-0 pb-0">
+      <div className="section-container !pt-4 !pb-4 md:!pt-6 md:!pb-6 relative z-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -547,7 +547,7 @@ const ValuationTabs = ({
               </p>
             </div>
           )}
-          <div className="p-4 md:p-8 lg:p-12">
+          <div className="p-4 md:p-6 lg:p-8">
             {!hideHeaderAndTabs ? (
               <Tabs
                 activeTab={activeTab}
