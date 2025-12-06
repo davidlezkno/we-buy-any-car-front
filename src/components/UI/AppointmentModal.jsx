@@ -207,58 +207,6 @@ const AppointmentModal = ({
     };
 
     onConfirm(confirmedAppointment);
-    
-    // NO cerrar el modal automáticamente - solo ejecutar onConfirm
-    // El modal se cerrará manualmente cuando sea necesario
-    // try {
-    //   if (onConfirm) {
-    //     await onConfirm(confirmedAppointment);
-    //   }
-    //   // NO llamar setShowOTPModal(false) aquí - el modal permanece abierto
-    // } catch (error) {
-    //   console.error("Error verifying OTP:", error);
-    //   // Si hay error, puedes mostrar un mensaje pero no cerrar el modal
-    //   throw error; // Re-lanzar el error para que OTPModal lo maneje
-    // }
-    // -- ACA SE VERIFICA EL CODIGO QUE SE ENVIA POR MENSAJE DE TEXTO --
-    // return new Promise((resolve, reject) => {
-    //   setTimeout(() => {
-    //     // For demo purposes, accept any 6-digit code
-    //     if (otpCode.length === 6) {
-    //       // OTP verified successfully - confirm appointment and navigate
-    //       const confirmedAppointment = {
-    //         ...selectedSlot,
-    //         specificTime: selectedTime?.timeSlot24Hour,
-    //         contactInfo: formData,
-    //       };
-          
-    //       // Call onConfirm to update appointment info
-    //       onConfirm(confirmedAppointment);
-          
-    //       // Reset and close modals
-    //       setStep(1);
-    //       setSelectedTime({});
-    //       setFormData({
-    //         firstName: "",
-    //         lastName: "",
-    //         telephone: "",
-    //         receiveSMS: false,
-    //       });
-    //       setErrors({});
-    //       setShowOTPModal(false);
-    //       onClose();
-          
-    //       // Navigate to confirmation page immediately after OTP verification
-    //       setTimeout(() => {
-    //         navigate("/valuation/confirmation", { replace: true });
-    //       }, 100);
-          
-    //       resolve();
-    //     } else {
-    //       reject(new Error("Invalid code. Please try again."));
-    //     }
-    //   }, 1000);
-    // });
   };
 
   const handleResendOTP = async () => {
