@@ -10,7 +10,7 @@ import httpClient from './utils/httpClient';
  * @param {string} zipCode - Zip code for search
  * @returns {Promise<Array>} Array of nearby stores
  */
-export const findNearbyStores = async (zipCode, retries = 3) => {
+export const findNearbyStores = async (zipCode, retries = 2) => {
   try {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -64,7 +64,7 @@ export const findNearbyStores = async (zipCode, retries = 3) => {
   }
 };
 
-export const createAppointment = async (appointmentData, retries = 3) => {
+export const createAppointment = async (appointmentData, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -80,7 +80,24 @@ export const createAppointment = async (appointmentData, retries = 3) => {
   }
 };
 
-export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 3) => {
+
+export const cancelAppointment = async (customerVehicleId, phoneNumber , retries = 2) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    
+    const response = await httpClient.post(`http://localhost:5001/api/Appointment/book`, {customerVehicleId, phoneNumber}, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Get makes error:', error);
+    if (retries === 0) throw error;
+    return cancelAppointment(customerVehicleId, phoneNumber, retries - 1);
+  }
+}
+
+export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -97,7 +114,7 @@ export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumb
 };
 
 
-export const sendSmS  = async (customerVehicleId, recipient, message = "", retries = 3) => {
+export const sendSmS  = async (customerVehicleId, recipient, message = "", retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -118,7 +135,7 @@ export const sendSmS  = async (customerVehicleId, recipient, message = "", retri
  * @param {Object} appointmentData - Appointment details
  * @returns {Promise<Object>} Booking confirmation
  */
-export const bookAppointment = async (appointmentData, retries = 3) => {
+export const bookAppointment = async (appointmentData, retries = 2) => {
   try {
     const response = await httpClient.post('/api/appointments', appointmentData);
     return response.data;
@@ -136,7 +153,7 @@ export const bookAppointment = async (appointmentData, retries = 3) => {
  * @param {string} locationId - Location ID
  * @returns {Promise<Array>} Available time slots
  */
-export const getAvailableTimeSlots = async (date, locationId, retries = 3) => {
+export const getAvailableTimeSlots = async (date, locationId, retries = 2) => {
   try {
     const response = await httpClient.get('/api/appointments/slots', {
       params: { date, locationId },
