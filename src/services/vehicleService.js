@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 import httpClient from './utils/httpClient';
-import { random10Digits } from '../utils/helpers';
+import { getCookie, random10Digits } from '../utils/helpers';
 
 
 // External API endpoints
@@ -16,7 +16,7 @@ const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
  * @param {string} vin - Vehicle Identification Number
  * @returns {Promise<Object>} Decoded vehicle data
  */
-export const decodeVIN = async (vin, retries = 3) => {
+export const decodeVIN = async (vin, retries = 2) => {
   try {
     const response = await axios.get(
       `${NHTSA_BASE_URL}/DecodeVinValues/${vin}?format=json`
@@ -59,7 +59,7 @@ export const decodeVIN = async (vin, retries = 3) => {
  * @param {string} state - State code
  * @returns {Promise<Object>} Vehicle data from license plate
  */
-export const decodeLicensePlate = async (plate, state, retries = 3) => {
+export const decodeLicensePlate = async (plate, state, retries = 2) => {
   try {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -86,7 +86,7 @@ export const decodeLicensePlate = async (plate, state, retries = 3) => {
   }
 };
 
-export const getVehicleMakes = async (year, retries = 3) => {
+export const getVehicleMakes = async (year, retries = 2) => {
   
   try {
     const token = sessionStorage.getItem('token');
@@ -102,7 +102,7 @@ export const getVehicleMakes = async (year, retries = 3) => {
   }
 };
 
-export const createVisitorID = async (retries = 3) => {
+export const createVisitorID = async (retries = 2) => {
   
   try {
     const token = sessionStorage.getItem('token');
@@ -122,7 +122,7 @@ export const createVisitorID = async (retries = 3) => {
   }
 };
 
-export const createCustomerJourney = async (year,make,model, visitId = 1, retries = 3) => {
+export const createCustomerJourney = async (year,make,model, visitId = 1, retries = 2) => {
   
   try {
     const token = sessionStorage.getItem('token');
@@ -142,28 +142,54 @@ export const createCustomerJourney = async (year,make,model, visitId = 1, retrie
   }
 };
 
-export const createCustomerJourneyByVin = async ( vin = 1, retries = 3 ) => {
+
+export const createCustomerJourneyByPlate = async (  visitId, plateNumber, plateState ) => {
   
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
+
+    visitId = visitId|| getCookie("visitorId");
+
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/vin`, 
-      {visitId: 1, vin: vin}, 
+      `http://localhost:5001/api/customer-journey/plate`, 
+      {visitId: visitId, plateNumber: plateNumber, plateState: plateState}, 
       { headers }
     );
     return response.data;
   } catch (error) {
     console.error('Create customer journey error:', error);
-    if (retries === 0) return [];
-    return createCustomerJourneyByVin( vin, retries - 1);
+    return null;
+    
+  }
+};
+
+export const createCustomerJourneyByVin = async ( vin = 1 , visitId ) => {
+  
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+
+    visitId = visitId|| getCookie("visitorId");
+
+    const response = await httpClient.post(
+      `http://localhost:5001/api/customer-journey/vin`, 
+      {visitId: visitId, vin: vin}, 
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Create customer journey error:', error);
+    return null;
   }
 };
 
 
-export const CustomerDetailJourney = async (newData,customerJourneyId, retries = 3) => {
+export const CustomerDetailJourney = async (newData,customerJourneyId, retries = 2) => {
   
   try {
     const token = sessionStorage.getItem('token');
@@ -180,13 +206,15 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
   }
 };
 
-export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 3) => {
+export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 2) => {
   
   if(newData.email === ""){
     const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
+
     newData = {
       ...newData,
-      ...data
+      ...(data ? data : {}),
+      optionalPhoneNumber: data?.phone == "" ? null : data?.phone,
     };
   }
 
@@ -205,12 +233,8 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
   }
 };
 
-/**
-* Get customer journey
-* @param {number} customerJourneyId - Customer journey ID
-* @returns {Promise<Object>} Customer journey data
-*/
-export const GetCustomerJourney = async (customerJourneyId, retries = 3) => {
+
+export const GetCustomerJourney = async (customerJourneyId, retries = 2) => {
   
   try {
     const token = sessionStorage.getItem('token');
@@ -227,12 +251,29 @@ export const GetCustomerJourney = async (customerJourneyId, retries = 3) => {
 };
 
 
+
+export const GetCustomerJourneyByVisit = async (visitId, retries = 2) => {
+  
+  try {
+    const token = sessionStorage.getItem('token');
+    const headers = {
+      'Authorization': `Bearer ${token}`
+    };
+    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${visitId.toString()}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Get makes error:', error);
+    if (retries === 0) return [];
+    return GetCustomerJourney(visitId, retries - 1);
+  }
+};
+
 /**
  * Get models by make using NHTSA API
  * @param {string} make - Vehicle make
  * @returns {Promise<string[]>} Array of vehicle models
  */
-export const getSeries = async (year,model,make, retries = 3) => {
+export const getSeries = async (year,model,make, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -248,7 +289,7 @@ export const getSeries = async (year,model,make, retries = 3) => {
   }
 };
 
-export const getModelsByMake = async (year,make, retries = 3) => {
+export const getModelsByMake = async (year,make, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -267,7 +308,7 @@ export const getModelsByMake = async (year,make, retries = 3) => {
  * Get vehicle years (last 30 years)
  * @returns {string[]} Array of years
  */
-export const getVehicleYears = async (retries = 3) => {
+export const getVehicleYears = async (retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -284,7 +325,7 @@ export const getVehicleYears = async (retries = 3) => {
 };
 
 
-export const getImageVehicle = async (externalUrl, retries = 3) => {
+export const getImageVehicle = async (externalUrl, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -314,7 +355,7 @@ export const getImageVehicle = async (externalUrl, retries = 3) => {
  * @param {string} year - Vehicle year
  * @returns {Promise<string>} Image URL
  */
-export const getVehicleImage = async (make, model, year, retries = 3) => {
+export const getVehicleImage = async (make, model, year, retries = 2) => {
   try {
     const basePath = import.meta.env.BASE_URL || '/';
 
@@ -351,7 +392,7 @@ export const getVehicleImage = async (make, model, year, retries = 3) => {
  * @param {string} zoneId - Zone ID (unused in current implementation)
  * @returns {Promise<Array<{value: string, label: string}>>} Component options
  */
-export const getComponentList = async (zoneId, retries = 3) => {
+export const getComponentList = async (zoneId, retries = 2) => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -375,7 +416,7 @@ export const getComponentList = async (zoneId, retries = 3) => {
  * @param {string} componentId - Component ID (unused in current implementation)
  * @returns {Promise<Array<{value: string, label: string}>>} Fault type options
  */
-export const getFaultTypeList = async (componentId, retries = 3) => {
+export const getFaultTypeList = async (componentId, retries = 2) => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 300));
 

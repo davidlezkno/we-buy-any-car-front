@@ -11,7 +11,7 @@ import httpClient from './utils/httpClient';
  * @param {Object} userInfo - User information (currently unused)
  * @returns {Promise<Object>} Valuation result customerJourneyId
  */
-export const getVehicleValuation = async (vehicleData, userInfo, retries = 3) => {
+export const getVehicleValuation = async (vehicleData, userInfo, retries = 2) => {
   try {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -117,14 +117,15 @@ export const getVehicleValuation = async (vehicleData, userInfo, retries = 3) =>
 };
 
 
-export const saveValuationVehicle = async (valuationVehicle, retries = 3) => {
+export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
   try {
 
     if(valuationVehicle.email === ""){
       const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
       valuationVehicle = {
         ...valuationVehicle,
-        ...data
+        ...data,
+        optionalPhoneNumber: data.phone == "" ? null : data.phone,
       };
     }
     const token = sessionStorage.getItem('token');
@@ -141,7 +142,7 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 3) => {
 };
 
 
-export const getValuationVehicle = async (id, retries = 3) => {
+export const getValuationVehicle = async (id, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
@@ -167,7 +168,7 @@ export const submitVehicleOffer = async (
   vehicleData,
   userInfo,
   appointmentInfo,
-  retries = 3
+  retries = 2
 ) => {
   try {
     const response = await httpClient.post('/api/offers', {

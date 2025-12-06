@@ -45,7 +45,6 @@ export const getGoogleMapsEmbedUrl = (lat, lng) => {
 
 export const isMobileDevice = () => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  console.log("---- isMobile ---", isMobile);
   return isMobile;
 }
 

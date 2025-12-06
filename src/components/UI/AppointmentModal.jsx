@@ -20,11 +20,16 @@ const AppointmentModal = ({
   
   const [step, setStep] = useState(1); 
   const [selectedTime, setSelectedTime] = useState({});
+  const [seletedHomeTime, setSeletedHomeTime] = useState(false);
+  const zipCode = localStorage.getItem("zipCode");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     telephone: "",
     receiveSMS: false,
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
   });
   const [errors, setErrors] = useState({});
   const [showOTPModal, setShowOTPModal] = useState(false);
@@ -81,15 +86,15 @@ const AppointmentModal = ({
       branchesHours.map(hours => {
         if(hours.timeOfDay){
           if(hours.timeOfDay == "Morning"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "09:00" });
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "09:00", type: "home" });
           }
 
           if(hours.timeOfDay == "Afternoon"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "14:00" });
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "14:00", type: "home" });
           }
 
           if(hours.timeOfDay == "Evening"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "20:00" });
+            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "20:00", type: "home" });
           }
           
         }else{
@@ -104,8 +109,6 @@ const AppointmentModal = ({
           }
         }        
       });
-      console.log("dataHoursdataHoursdataHours", dataHours);
-      console.log("selectedSlotselectedSlotselectedSlot", selectedSlot);
       setAvailableTimes(dataHours[selectedSlot?.time] || []);
     }
   }, [isOpen, initialPhone]);
@@ -159,18 +162,13 @@ const AppointmentModal = ({
   const handleConfirm = async () => {
     
     if (validateForm()) {
-      console.log("---- vehicleData.id ---", vehicleData);
-      console.log("---- formData.telephone ---", formData);
       
       createOnTime(vehicleData.customerVehicleId, vehicleData.closestBranchContactInfo.branchId, formData.telephone.replace(/\D/g, ""), 3).then(resOnTime => {
-        console.log("---- res createOnTime ---", resOnTime);
-
         sendSmS(
           vehicleData.customerVehicleId, 
           formData.telephone.replace(/\D/g, ""), 
           `Your appointment has been booked successfully. 
           Please use the following code to verify your appointment: ${random3Digits(6)}`).then(resSendSMS => {
-          console.log("---- res sendSMS ---", resSendSMS);
         });
 
       });
@@ -200,18 +198,28 @@ const AppointmentModal = ({
   };
 
   const handleOTPVerify = async (otpCode) => {
-    // TODO: Replace with actual API call to verify OTP
-    // Simulate OTP verification
-    console.log("---- otpCode ---", otpCode);
-
-    console.log("---- selectedTime ---", selectedTime);
+    
     const confirmedAppointment = {
       ...selectedSlot,
       specificTime: selectedTime,
       contactInfo: formData,
       otpCode: otpCode,
     };
+
     onConfirm(confirmedAppointment);
+    
+    // NO cerrar el modal automáticamente - solo ejecutar onConfirm
+    // El modal se cerrará manualmente cuando sea necesario
+    // try {
+    //   if (onConfirm) {
+    //     await onConfirm(confirmedAppointment);
+    //   }
+    //   // NO llamar setShowOTPModal(false) aquí - el modal permanece abierto
+    // } catch (error) {
+    //   console.error("Error verifying OTP:", error);
+    //   // Si hay error, puedes mostrar un mensaje pero no cerrar el modal
+    //   throw error; // Re-lanzar el error para que OTPModal lo maneje
+    // }
     // -- ACA SE VERIFICA EL CODIGO QUE SE ENVIA POR MENSAJE DE TEXTO --
     // return new Promise((resolve, reject) => {
     //   setTimeout(() => {
@@ -268,6 +276,7 @@ const AppointmentModal = ({
   };
 
   const handleBack = () => {
+    
     if (showOTPModal) {
       setShowOTPModal(false);
       setStep(2);
@@ -276,16 +285,26 @@ const AppointmentModal = ({
       setSelectedTime({});
       setErrors({});
     } else {
-      onClose();
+      onClose();      
     }
   };
 
   // Close OTP modal when main modal closes
   useEffect(() => {
     if (!isOpen) {
+      setSeletedHomeTime(false);
       setShowOTPModal(false);
     }
   }, [isOpen]);
+
+  // Auto-click button if only one available time and type is "home"
+  useEffect(() => {
+    if (step === 1 && availableTimes.length === 1 && isOpen && availableTimes[0]?.type === "home" && !seletedHomeTime) {
+      setSeletedHomeTime(true);
+      handleTimeSelect(availableTimes[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableTimes.length, step, isOpen]);
 
   // Check if form is valid for button enabling
   const isFormValid = () => {
@@ -429,13 +448,53 @@ const AppointmentModal = ({
                     placeholder="Enter Telephone Number"
                     value={formData.telephone}
                     onChange={(e) =>{
-                      console.log("e.target.valuee.target.valuee.target.value", e.target.value);
                       setPhoneNumber(e.target.value);
                       handleInputChange("telephone", e.target.value)
                     }}
                     error={errors.telephone}
                     id="appointment-modal-telephone-input"
                   />
+
+                  {selectedSlot?.type === "home" && (
+                    <>
+                      <Input
+                        label="Address Line 1"
+                        placeholder="Enter Address Line 1"
+                        value={formData.addressLine1}
+                        onChange={(e) =>
+                          handleInputChange("addressLine1", e.target.value)
+                        }
+                        error={errors.addressLine1}
+                        id="appointment-modal-address-line-1-input"
+                      />
+
+                      <Input
+                        label="Address Line 2"
+                        placeholder="Enter Address Line 2 (Optional)"
+                        value={formData.addressLine2}
+                        onChange={(e) =>
+                          handleInputChange("addressLine2", e.target.value)
+                        }
+                        error={errors.addressLine2}
+                        id="appointment-modal-address-line-2-input"
+                      />
+
+                      <Input
+                        label="City"
+                        placeholder="Enter City"
+                        width="50%"
+                        value={formData.city}
+                        onChange={(e) =>
+                          handleInputChange("city", e.target.value)
+                        }
+                        error={errors.city}
+                        id="appointment-modal-city-input"
+                      />
+
+                        <label className="text-sm text-gray-700 cursor-pointer">ZIP Code: {zipCode}</label>
+
+                    </>
+                  )}
 
                   <div className="flex items-start gap-3 pt-2">
                     {/* ID already exists, keeping it for consistency */}
@@ -535,7 +594,6 @@ const AppointmentModal = ({
       <OTPModal
         isOpen={showOTPModal}
         onClose={() => {
-          console.log("---- onClose OTPModal ---");
           setShowOTPModal(false);
           setStep(2);
         }}

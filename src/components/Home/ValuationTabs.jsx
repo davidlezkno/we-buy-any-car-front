@@ -80,30 +80,21 @@ const ValuationTabs = ({
     });
   }, [onMakeModelSubmit, selectedMake, selectedModel, selectedYear]);
 
-  const handleVinValueSubmit = useCallback(async () => {
+  const handleVinValueSubmit = () => {
     if (vinValue.length !== 17) {
       return;
+    }else{
+      onVinSubmit(vinValue);
     }
+  }
 
-    createCustomerJourneyByVin(vinValue).then(rps => {
-      localStorage.setItem("customerJourneyId", rps.customerJourneyId);
-      navigate(`/valuation/vehicledetails/${rps.customerJourneyId}`);
-      
-    }).catch(error => {
-      console.error("Error Create customer journey by vin:", error);
-    });
-
-
-    // setVinLoading(true);
-    // setVinError(null);
-    // try {
-    //   const vehicleInfo = await decodeVIN(vinValue.toUpperCase());
-    //   onVinSubmit(vehicleInfo);
-    // } catch (error) {
-    //   setVinError(error.message);
-    //   setVinLoading(false);
-    // }
-  }, [onVinSubmit, vinValue]);
+  const handlePlateSubmit = (_state, _plate) => {
+    if (!plateState || !plateValue) {
+      return;
+    }else{
+      onPlateSubmit(plateState, plateValue);
+    }
+  }
 
   const tabs = useMemo(
     () => [
@@ -478,7 +469,7 @@ const ValuationTabs = ({
                   size="lg"
                   className="px-6 md:px-10 py-3 md:py-4 text-base md:text-lg font-bold w-full md:w-auto"
                   disabled={!plateState || !plateValue}
-                  onClick={() => onPlateSubmit(plateState, plateValue)}
+                  onClick={() => handlePlateSubmit(plateState, plateValue)}
                   icon={ArrowRight}
                   iconPosition="right"
                   id="value-my-car-plate-button"

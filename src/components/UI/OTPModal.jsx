@@ -107,13 +107,20 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
     // setIsLoading(true);
     // setError("");
 
+    setIsLoading(true);
+    setError("");
     try {
       if (onVerify) {
+        // Esperar a que onVerify complete, pero NO cerrar el modal automáticamente
         onVerify(code);
+        // Si onVerify se completa sin error, mantener el modal abierto
+        // El modal solo se cerrará manualmente cuando el usuario lo solicite
+        setIsLoading(false);
       }
     } catch (err) {
       setError(err.message || "Invalid code. Please try again.");
       setIsLoading(false);
+      // NO cerrar el modal en caso de error - permitir que el usuario intente de nuevo
     }
   };
 

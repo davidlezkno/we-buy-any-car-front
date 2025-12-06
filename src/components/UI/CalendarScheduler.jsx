@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
-import { getGoogleMapsEmbedUrl, getPeriod, isMobileDevice } from "../../utils/helpers";
-import { getBrancheById } from "../../services/branchService";
+import { convertTo12Hour, getDayName, getGoogleMapsEmbedUrl, getNext12Days, getPeriod, isMobileDevice } from "../../utils/helpers";
+import { getBrancheById, getBranchesByCustomerVehicle } from "../../services/branchService";
 import { weekDays } from "../../utils/model";
 
 const CalendarScheduler = ({
@@ -31,9 +31,14 @@ const CalendarScheduler = ({
   const [branchesData, setBranchesData] = useState(branches);
   const [locations, setLocations] = useState([]);
 
-  useEffect(() => {
-    console.log("--- branchesData initialPhone ---",branchesData);
+  // Update branchesData when branches prop changes
+  // useEffect(() => {
+  //   if (branches && branches.length > 0) {
+  //     setBranchesData(branches);
+  //   }
+  // }, [branches]);
 
+  useEffect(() => {
     if(branchesData.length > 0 ){
       const locs = branchesData.map(branch => {
         let obj = {};
@@ -63,8 +68,6 @@ const CalendarScheduler = ({
         }
       });
 
-      console.log(" ==== locs ==== ", locs);
-
       setLocations(locs);
     }
 
@@ -73,17 +76,118 @@ const CalendarScheduler = ({
       if (btn) btn.click();
     }
   }, [branchesData]);
+
+
+  const handleZipSearch = (e) => {
+    // localStorage.setItem("zipCode", zipCode);
+    // searchZip(zipCode);
+
+    getBranchesByCustomerVehicle(zipCode, "").then(branchesHours => {
+      const branchesHoursData = branchesHours.physical.map(branch => {
+        let obj = [];
+        const days = getNext12Days();
+        for(var i = 0; i < days.length; i++){
+          const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];     
+          const objData =    {
+            closeTime: fechaHora ? convertTo12Hour(fechaHora[fechaHora.length - 1].timeSlot24Hour) : "",
+            date: days[i],
+            dayOfWeek: getDayName(days[i]),
+            isExceptional: false,
+            openTime: fechaHora ? convertTo12Hour(fechaHora[0].timeSlot24Hour) : "",
+            type: fechaHora ? "open" : "closed"
+          };    
+          if(objData.type === "open"){
+            obj.push(objData);
+            obj.push({...objData, openTime: "01:00 PM"});
+          }else{
+            obj.push(objData);
+          }
+        }
+
+        return {
+            address1: "",
+            address2: "",
+            branchEmail: "",
+            branchId: branch.branchId,
+            branchManagerName: "",
+            branchName: branch.branchName,
+            branchPhone: branch.telephone,
+            city: branch.city,
+            distanceMiles: branch.distanceInMiles,
+            latitude: "",
+            longitude: "",
+            type:"branch",
+            operationHours: obj
+        }
+      });
+
+      if(branchesHours?.mobile?.branchId){
+        const branch = branchesHours.mobile;
+        let obj = [];
+          const days = getNext12Days();
+          for(var i = 0; i < days.length; i++){
+            const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];  
+            let objData = {} ;
+            if(fechaHora){
+              objData =    {
+                closeTime: fechaHora[0].timeOfDay == "Afternoon" ? "01:00 PM" : (fechaHora[0].timeOfDay == "Morning" ? "09:00 AM" : "08:00 PM"),
+                date: days[i],
+                timeSlotId: fechaHora[0].timeSlotId,
+                dayOfWeek: getDayName(days[i]),
+                isExceptional: false,
+                openTime: fechaHora[0].timeOfDay == "Afternoon" ? "01:00 PM" : (fechaHora[0].timeOfDay == "Morning" ? "11:00 AM" : "08:00 PM"),
+                type: "open"
+              };
+            }else{
+              objData = {
+                closeTime: "",
+                date: days[i],
+                dayOfWeek: getDayName(days[i]),
+                isExceptional: false,
+                openTime: "",
+                type: "closed"
+              };
+            }
+                
+            if(objData.type === "open"){
+              obj.push(objData);
+              obj.push({...objData, openTime: "01:00 PM"});
+            }else{
+              obj.push(objData);
+            }
+          }
+          
+          branchesHoursData.unshift({
+            address1: "",
+            address2: "",
+            branchEmail: "",
+            branchId: branch.branchId,
+            branchManagerName: "",
+            branchName: branch.branchName,
+            branchPhone: branch.telephone,
+            city: branch.city,
+            distanceMiles: branch.distanceInMiles,
+            latitude: "",
+            longitude: "",
+            type:"home",
+            operationHours: obj
+        });
+      }
+      
+      setBranchesData(branchesHoursData);
+
+      
+    }).catch(error => {
+      console.error("Error getting branches:", error);
+      
+    });
+
+
+
+
+  };
   
  
- 
-  const handleSearchByZip = (e) => {
-    e.preventDefault();
-    if (searchZip.trim()) {
-      // Branch search by ZIP code logic can be implemented here
-      // For now, this is a placeholder for future functionality
-      console.log("Branch search by ZIP not yet implemented:", searchZip);
-    }
-  };
   
   // Generate dates for the next 7 days starting from dayOffset (for desktop view)
   const getDates = (offset = 0) => {
@@ -107,7 +211,7 @@ const CalendarScheduler = ({
       dates.push({
         day: days[date.getDay()],
         date: `${day}/${month}/${year}`,
-        fullDate: date.toISOString().split("T")[0],
+        fullDate: `${year}-${month}-${day}`,
         dayIndex: date.getDay(),
       });
     }
@@ -154,7 +258,6 @@ const CalendarScheduler = ({
   const canGoBack = dayOffset > 0;
 
   const handleViewMoreDates = () => {
-    console.log("---- canGoForward ---", canGoForward);
     if (canGoForward) {
       // Advance by 7 days, but don't exceed MAX_DAYS_AHEAD - 7
       const newOffset = Math.min(dayOffset + 7, MAX_DAYS_AHEAD - 7);
@@ -170,9 +273,7 @@ const CalendarScheduler = ({
     }
   };
 
-  const handleZipSearch = (e) => {
-    searchZip(zipCode)
-  };
+  
   const timeSlots = ["Morning", "Afternoon", "Evening"];
 
   // Function to extract only digits from phone number
@@ -208,52 +309,6 @@ const CalendarScheduler = ({
 
   const branchTimeSlots = generateBranchTimeSlots();
 
-  // Example location data (should come from an API)
-  // const locations = [
-  //   {
-  //     id: "home",
-  //     name: "We Come to You",
-  //     location: "New Jersey",
-  //     phone: "(484) 519-2538",
-  //     type: "home",
-  //     availability: {
-  //       // Example: only available Friday and Saturday
-  //       5: { Morning: true, Afternoon: true, Evening: false }, // Friday
-  //       6: { Morning: true, Afternoon: true, Evening: false }, // Saturday
-  //     },
-  //   },
-  //   {
-  //     id: "union",
-  //     name: "Union",
-  //     distance: "8 miles",
-  //     phone: "(908) 873-6460",
-  //     type: "branch",
-  //     availability: {
-  //       1: { Morning: true, Afternoon: true, Evening: true }, // Monday
-  //       2: { Morning: true, Afternoon: true, Evening: true }, // Tuesday
-  //       3: { Morning: true, Afternoon: true, Evening: true }, // Wednesday
-  //       4: { Morning: true, Afternoon: true, Evening: true }, // Thursday
-  //       5: { Morning: true, Afternoon: true, Evening: true }, // Friday
-  //       6: { Morning: true, Afternoon: true, Evening: true }, // Saturday
-  //     },
-  //   },
-  //   {
-  //     id: "plainfield",
-  //     name: "Plainfield",
-  //     distance: "10 miles",
-  //     phone: "(908) 873-6950",
-  //     type: "branch",
-  //     availability: {
-  //       1: { Morning: true, Afternoon: true, Evening: true },
-  //       2: { Morning: true, Afternoon: true, Evening: true },
-  //       3: { Morning: true, Afternoon: true, Evening: true },
-  //       4: { Morning: true, Afternoon: true, Evening: true },
-  //       5: { Morning: true, Afternoon: true, Evening: true },
-  //       6: { Morning: true, Afternoon: true, Evening: true },
-  //     },
-  //   },
-  // ];
-
   const isSlotAvailable = (locationId, dayIndex, timeSlot) => {
     
     const location = locations.find((loc) => loc.id === locationId);
@@ -264,9 +319,6 @@ const CalendarScheduler = ({
   };
 
   const handleSlotClick = (locationId, date, timeSlot) => {
-    console.log("---- locationId ---", locationId);
-    console.log("---- date ---", date);
-    console.log("---- timeSlot ---", timeSlot);
     if (!isSlotAvailable(locationId, date.dayIndex, timeSlot)) return;
 
     const location = locations.find((loc) => loc.id === locationId);
@@ -409,11 +461,9 @@ const CalendarScheduler = ({
   };
 
   const loadDataBranch = (location) => {
-    console.log("---- location ---", location);
     getBrancheById(location.id).then(response => {
       const res = response.branchLocation;
       const obj = {};
-      console.log(res.operationHours);
       for(let i = 0; i < res.operationHours.length; i++){
         const hour = res.operationHours[i];
         if(hour.type === "open"){

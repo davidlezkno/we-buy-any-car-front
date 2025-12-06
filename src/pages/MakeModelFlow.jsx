@@ -43,8 +43,8 @@ const MakeModelFlow = () => {
   const [branchesData, setBranchesData] = useState([]);
   const [firstBranch, setFirstBranch] = useState(null);
   
+  
   // OTP Secret from environment variable
-  const otpSecret = import.meta.env.VITE_OTP_SECRET || "";
   const [branchesHours, setBranchesHours] = useState([]);
   const [BodyTypeSelected, setBodyTypeSelected] = useState("");
   const [branchesHoursSelected, setBranchesHoursSelected] = useState(null);
@@ -67,61 +67,69 @@ const MakeModelFlow = () => {
       navigate("/");
     }else{
 
-      GetCustomerJourney(customerJourneyId).then(customerJourney => {
-        if(customerJourney){
+      if(!customerJourneyData){
+        GetCustomerJourney(customerJourneyId).then(customerJourney => {
           setCustomerJourneyData(customerJourney);
-          const { year, make, model } = customerJourney;
-          if(customerJourney.zipCode != "" && window.location.pathname.indexOf("/secure/bookappointment") >= 0){
-           handleVehicleConditionSubmit(getValues());
-            // getBranches(customerJourney.zipCode, 1, "Physical").then(branches => {
-            //   sessionStorage.setItem("branches", JSON.stringify(branches.branchLocations));
-            //   setBranchesData(branches.branchLocations);
-            // }).catch(error => {
-            //   console.error("Error getting branches:", error);
-            // });
-          }
+        }).catch(error => {
+          console.error("Error getting customer journey:", error);
+          navigate("/");
+        });
+      }
+      
+      if(customerJourneyData){
+        const { year, make, model } = customerJourneyData;
+        setCustomerJourneyData(customerJourneyData);
+        if(customerJourneyData.zipCode != null && 
+          customerJourneyData.zipCode != undefined && 
+          customerJourneyData.zipCode != "" && 
+          window.location.pathname.indexOf("/secure/bookappointment") >= 0){
+          localStorage.setItem("zipCode", customerJourneyData.zipCode);
+          handleVehicleConditionSubmit(getValues());
+        }
 
+        if(listSeries.length === 0){
           getSeries(year,model,make).then(series => {
-            updateVehicleData({
-              year: year,
-              make: make,
-              model: model,
-            });
             setListSeries(series);
             setSerieSelected(series[0].series);
             setValue("series", series[0].series);
-            
-            // watchSeries || !watchBodyType
-
-            if(window.location.pathname.indexOf("/valuation/vehicledetails") >= 0){
-
-              const dat = series.filter(item => item.series === series[0].series);
-              setListBodyTypes(dat);      
-              if(dat.length === 1){
-                setValue("bodyType", dat[0].bodystyle);
-                setBodyTypeSelected(dat[0].bodystyle);
-              }                  
-
-              if([...new Set(series.map(item => (item.series)))].length === 1 && dat.length === 1){
-                handleSeriesBodySubmit({series:series[0].series,bodyType:dat[0].bodystyle});
-              }
-              loadImage(series[0].imageUrl);
-
-            }
-
-            
-
           }).catch(error => {
             console.error("Error getting series:", error);
           });
-          
         }
-      }).catch(error => {
-        console.error("Error getting customer journey:", error);
-        navigate("/");
-      });
+          
+        if(listSeries.length > 0){
+
+          updateVehicleData({
+            year: year,
+            make: make,
+            model: model,
+          });
+
+          if(window.location.pathname.indexOf("/valuation/vehicledetails") >= 0){
+
+            const datBodyTypes = listSeries.filter(item => item.series === listSeries[0].series);
+            setListBodyTypes(datBodyTypes);
+
+            if(datBodyTypes.length === 1){
+              setValue("bodyType", datBodyTypes[0].bodystyle);
+              setBodyTypeSelected(datBodyTypes[0].bodystyle);
+            }                  
+
+            if([...new Set(listSeries.map(item => (item.series)))].length === 1 && datBodyTypes.length === 1){
+              handleSeriesBodySubmit({series:listSeries[0].series,bodyType:datBodyTypes[0].bodystyle});
+            }
+            if(customerJourneyData.body != null && customerJourneyData.series != null){
+              handleSeriesBodySubmit({series:customerJourneyData.series,bodyType:customerJourneyData.body});
+            }
+
+          }
+          
+          loadImage(customerJourneyData.vehicleImageUrl ? customerJourneyData.vehicleImageUrl : listSeries[0].imageUrl);
+
+        }
+      }
     }
-  }, [ navigate ]);
+  },[customerJourneyData, listSeries]);
 
   const loadImage = async (imageUrl) => {
     getImageVehicle(imageUrl).then(image => {
@@ -137,15 +145,14 @@ const MakeModelFlow = () => {
   // Each step now has a distinct URL for better tracking and navigation
   const getInitialStepFromUrl = () => {
     const path = location.pathname;
-
     // Map URL paths to steps
-    if (path === "/secure/bookappointment" || path.includes("/appointment")) {
+    if (path.indexOf("/secure/bookappointment") >= 0) {
       return 4; // Step 4: Appointment Scheduling
     }
-    if (path === "/valuation/vehiclecondition" || path.includes("/vehiclecondition")) {
+    if (path.indexOf("/valuation/vehiclecondition") >= 0) {
       return 3; // Step 3: Vehicle Condition
     }
-    if (path === "/valuation/vehicledetails" || path.includes("/vehicledetails")) {
+    if (path.indexOf("/valuation/vehicledetails") >= 0) {
       return 2; // Step 2: Series & Body
     }
     if (path === "/valuation" || path === "/sell-by-make-model") {
@@ -153,8 +160,7 @@ const MakeModelFlow = () => {
     }
 
     // Default fallback - determine from data availability
-    const hasInitialData =
-      vehicleData?.year && vehicleData?.make && vehicleData?.model;
+    const hasInitialData = vehicleData?.year && vehicleData?.make && vehicleData?.model;
     if (hasInitialData && vehicleData?.series && vehicleData?.bodyType) {
       return 3;
     }
@@ -214,7 +220,6 @@ const MakeModelFlow = () => {
   // Each step has a unique URL for better analytics and direct access
   const updateStepAndNavigate = (newStep) => {
     // Map step to URL path - each step has a distinct URL
-    console.log("---- customerJourneyId ---", );
     const id = customerJourneyId || localStorage.getItem("customerJourneyId");
     const stepPaths = {
       1: `/valuation/${id}`,
@@ -229,8 +234,6 @@ const MakeModelFlow = () => {
 
     // Only navigate if we're not already on the correct path
     // This prevents unnecessary navigation and GTM events
-    console.log("---- location.pathname ---", location.pathname);
-    console.log("---- targetPath ---", targetPath);
     if (location.pathname !== targetPath) {
       setStep(newStep);
       navigate(targetPath, { replace: true });
@@ -262,6 +265,7 @@ const MakeModelFlow = () => {
   const contentRef = useRef(null);
   const previousMakeRef = useRef("");
   const trustpilotWidgetRef = useRef(null);
+  const isLoadingBranchesRef = useRef(false);
 
   const {
     register,
@@ -454,39 +458,7 @@ const MakeModelFlow = () => {
     }
   }, [step, vehicleData?.runsAndDrives, valuation]);
 
-  // Load valuation when entering step 4
-  useEffect(() => {
-    // if (step === 4 && vehicleData) {
-    //   const loadValuation = async () => {
-    //     setLoadingValuation(true);
-    //     try {
-    //       const valuationData = await getVehicleValuation(
-    //         vehicleData,
-    //         userInfo,
-    //       );
-
-    //       // setValuation(valuationData);
-
-    //       // Track valuation completion for analytics
-    //       if (valuationData?.valuation) {
-    //         trackValuationComplete({
-    //           valuation: valuationData.valuation,
-    //           year: vehicleData.year,
-    //           make: vehicleData.make,
-    //           model: vehicleData.model,
-    //           odometer: vehicleData.odometer,
-    //         });
-    //       }
-    //     } catch (error) {
-    //       // Error loading valuation - log for debugging but don't disrupt UX
-    //       console.error("Error loading valuation:", error);
-    //     } finally {
-    //       setLoadingValuation(false);
-    //     }
-    //   };
-    //   loadValuation();
-    // }
-  }, [step, vehicleData, userInfo]);
+  
 
   // Initialize Trustpilot widget when step 4 is shown
   useEffect(() => {
@@ -734,8 +706,21 @@ const MakeModelFlow = () => {
   };
 
   const handleVehicleConditionSubmit = (data) => {
+    console.log("(((((((((((((((((((((((((((customerJourneyData", customerJourneyData);
     if(data.email == ""){
-      data = getValues();
+      data = customerJourneyData?.customerVehicleId ? {
+        ...customerJourneyData,
+        runsAndDrives:customerJourneyData,
+        hasIssues:customerJourneyData.hasDamage ? 'Yes' : 'No',
+        hasAccident:customerJourneyData.hasBeenInAccident ? 'Yes' : 'No',
+        hasClearTitle:customerJourneyData.isFinancedOrLeased ? 'Yes' : 'No',
+        odometer:customerJourneyData.mileage,
+        zipCode:customerJourneyData.zipCode,
+        email:customerJourneyData.email,
+        phone:customerJourneyData.optionalPhoneNumber || "",
+        receiveSMS:customerJourneyData.customerHasOptedIntoSmsMessages,
+        captchaMode:customerJourneyData.captchaWasDisplayed,
+      } : getValues();
     }
     
     // If runsAndDrives is "No", or hasIssues is "Yes", or hasAccident is "Yes", show additional questions
@@ -756,35 +741,20 @@ const MakeModelFlow = () => {
       // Show additional questions
       setShowAdditionalQuestions(true);
     } else {
-      // If "Yes", advance directly to step 4
+
+      if(data.zipCode == "" || data.zipCode == null){
+          localStorage.setItem("zipCode", data.zipCode);
+      }
       
       updateUserInfo({
         zipCode: data.zipCode,
         email: data.email,
         phone: data.phone || "",
         receiveSMS: data.receiveSMS || false,
-      });
-
-      // Track form submission for analytics
-      trackFormSubmit("vehicle_condition", {
-        runs_and_drives: data.runsAndDrives,
-        has_issues: data.hasIssues,
-        has_accident: data.hasAccident,
-        has_clear_title: data.hasClearTitle,
-        odometer: data.odometer,
-      });
-      
-      
-
-      // await getValuationVehicle(vehicleData.customerVehicleId).then(valuationVehicle => {
-      //   console.log("-----------------valuationVehicle--------------------------------", valuationVehicle);
-      // });
-      
-      // Navigate to appointment step (step 4) - URL changes to /secure/bookappointment
-      
+      });      
     }
 
-    if(data.email !== ""){
+    if(data.email !== "" && data.odometer != ''){
       localStorage.setItem("dataUpdateCustomerJourney", JSON.stringify({
         "mileage": data.odometer,
         "zipCode": data.zipCode,
@@ -793,13 +763,14 @@ const MakeModelFlow = () => {
         "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
         "hasDamage": data.hasIssues === "Yes" ? true : false,
         "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
-        "optionalPhoneNumber": formatPhone(data.phone),
+        "optionalPhoneNumber": data.phone == "" ? null : formatPhone(data.phone),
         "customerHasOptedIntoSmsMessages": data.receiveSMS,
         "captchaWasDisplayed": data.captchaMode
       }));
     }
 
     const idjourney = customerJourneyId || localStorage.getItem("customerJourneyId");
+    
     UpdateCustomerJourney({
       "mileage": data.odometer,
       "zipCode": data.zipCode,
@@ -808,14 +779,12 @@ const MakeModelFlow = () => {
       "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
       "hasDamage": data.hasIssues === "Yes" ? true : false,
       "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
-      "optionalPhoneNumber": formatPhone(data.phone),
+      "optionalPhoneNumber": data.phone == "" ? null : formatPhone(data.phone) ,
       "customerHasOptedIntoSmsMessages": data.receiveSMS,
       "captchaWasDisplayed": data.captchaMode
     }, idjourney).then(response => {
       const cleanData = cleanObject(response);
-      
-      
-      
+
       updateVehicleData({
         ...vehicleData,
         ...cleanData
@@ -826,10 +795,9 @@ const MakeModelFlow = () => {
         ...cleanData
       }));
 
-      
 
       saveValuationVehicle({
-        "cvid":cleanData.customerVehicleId,
+        "cvid":cleanData?.customerVehicleId == null ? customerJourneyData?.customerVehicleId : cleanData?.customerVehicleId,
         "mileage": data.odometer,
         "zipCode": data.zipCode,
         "email": data.email,
@@ -837,35 +805,40 @@ const MakeModelFlow = () => {
         "carIsDriveable": data.runsAndDrives === "Yes" ? true : false,
         "hasDamage": data.hasIssues === "Yes" ? true : false,
         "hasBeenInAccident": data.hasAccident === "Yes" ? true : false,
-        "optionalPhoneNumber": formatPhone(data.phone),
+        "optionalPhoneNumber": data.phone == "" ? null : formatPhone(data.phone) ,
         "customerJourneyId": customerJourneyId,
         "customerHasOptedIntoSmsMessages": data.receiveSMS,
         "captchaMode": "true"
       }).then(response => {
         if(response != null){
           setLoadingValuation(false);
-          setValuation({formattedValue:formatUSD(response.valuationAmount)});
-          getBranchesDataByZipMakeModel(data.zipCode, cleanData.customerVehicleId)
+          setValuation({formattedValue:formatUSD(response.valuationAmount || customerJourneyData?.valuationAmount)});
+          if(cleanData.customerVehicleId != "" && cleanData.customerVehicleId != null){
+            localStorage.setItem("customerVehicleId", cleanData.customerVehicleId);
+          }
+          getBranchesDataByZipMakeModel(!data.zipCode ? vehicleData?.zipCode : data?.zipCode, cleanData?.customerVehicleId || customerJourneyData?.customerVehicleId)
         }else{
-          setValue("zipCode", "");
           setError("zipCode", {
             type: "manual",
             message: "Please enter the ZIP code closest to where you intend to sell the vehicle",
           });
-          
         }
       }).catch(error => {
         console.error("Error saving valuation vehicle:", error);
       });
-
-
     }).catch(error => {
       console.error("Error updating customer journey:", error);
     });
     sessionStorage.setItem("vehicleData", JSON.stringify(vehicleData));
   };
 
-  const getBranchesDataByZipMakeModel = (zipCode, customerVehicleId) => {
+  const getBranchesDataByZipMakeModel = (zipCode, customerVehicleId, validate = false) => {
+      // Prevent duplicate calls
+      if (isLoadingBranchesRef.current) {
+        return;
+      }
+      
+      isLoadingBranchesRef.current = true;
       getBranchesByCustomerVehicle(zipCode, customerVehicleId).then(branchesHours => {
         const branchesHoursData = branchesHours.physical.map(branch => {
           let obj = [];
@@ -907,7 +880,6 @@ const MakeModelFlow = () => {
 
         if(branchesHours?.mobile?.branchId){
           const branch = branchesHours.mobile;
-          console.log('--branch--', branch);
           let obj = [];
             const days = getNext12Days();
             for(var i = 0; i < days.length; i++){
@@ -959,8 +931,6 @@ const MakeModelFlow = () => {
           });
         }
         
-        console.log("---- branchesHoursData ----", branchesHoursData);
-
         setBranchesData(branchesHoursData);
 
         getBrancheById(branchesHoursData[0].branchId).then(branch => {
@@ -969,9 +939,13 @@ const MakeModelFlow = () => {
 
         sessionStorage.setItem("branchesHours", JSON.stringify(branchesHours));
         setBranchesHours(branchesHours);
-        updateStepAndNavigate(4);
+        if(!validate){
+          updateStepAndNavigate(4);  
+        }
+        isLoadingBranchesRef.current = false;
       }).catch(error => {
         console.error("Error getting branches:", error);
+        isLoadingBranchesRef.current = false;
       });
   }
 
@@ -1090,7 +1064,6 @@ const MakeModelFlow = () => {
   };
 
   const handleSlotClick = (slotData) => {
-    console.log(" -- slotData --", slotData);
     const brchHours = branchesHours.length > 0 ? branchesHours : JSON.parse(sessionStorage.getItem("branchesHours"));
     const findP = brchHours?.physical?.find(branch => branch.branchId === slotData.locationId);
     const findM = brchHours?.mobile?.branchId === slotData.locationId ? brchHours.mobile : null;
@@ -1102,35 +1075,16 @@ const MakeModelFlow = () => {
   };
 
   const handleAppointmentConfirm = (appointmentData) => {
-    
-    console.log("---- appointmentData ---", appointmentData);
-    console.log("---- VEHICLE DATA ---", vehicleData);
-    
     setSelectedAppointment(appointmentData);
-    setIsModalOpen(false);
-    setSelectedSlot(null);
+    // setIsModalOpen(false);
+    // setSelectedSlot(null);
 
     // Update appointment info in context
-    updateAppointmentInfo(appointmentData);
-
-    // Track appointment confirmation for analytics
-    trackAppointmentConfirm({
-      date: appointmentData.date,
-      time: appointmentData.time || appointmentData.specificTime?.timeSlot24Hour,
-      location: appointmentData.location,
-      locationId: appointmentData.locationId,
-    });
-
-    // Track appointment slot selection for analytics
-    trackFormSubmit("appointment_slot_selected", {
-      appointment_date: appointmentData.date,
-      appointment_time: appointmentData.time,
-      appointment_location: appointmentData.location,
-    });
+    // updateAppointmentInfo(appointmentData);
 
     
     const branchSelect = branchesData.find(branch => branch.branchId === appointmentData.locationId);
-
+    
     createAppointment({
       "customerVehicleId": vehicleData.customerVehicleId,
       "branchId": appointmentData.locationId,
@@ -1140,8 +1094,8 @@ const MakeModelFlow = () => {
       "customerFirstName": appointmentData.contactInfo.firstName,
       "customerLastName": appointmentData.contactInfo.lastName,
       "email": vehicleData.email,
-      "address1": branchSelect.address1,
-      "address2": branchSelect.address2,
+      "address1": appointmentData?.contactInfo?.addressLine1 == "" ? null : appointmentData?.contactInfo?.addressLine1,
+      "address2": appointmentData?.contactInfo?.addressLine2 == "" ? null : appointmentData?.contactInfo?.addressLine2,
       "city": appointmentData.location,
       "model": vehicleData.model,
       "visitId": vehicleData.vid,
@@ -1191,13 +1145,7 @@ const MakeModelFlow = () => {
 
   const handleSearchByZip = (zipCode) => {
     
-    setValue("zipCode", zipCode);
-    handleVehicleConditionSubmit(getValues());
-    if (searchZip.trim()) {
-      // Branch search by ZIP code logic can be implemented here
-      // For now, this is a placeholder for future functionality
-      console.log("Branch search by ZIP not yet implemented:", searchZip);
-    }
+    // getBranchesDataByZipMakeModel(zipCode, vehicleData?.customerVehicleId, true)
   };
 
   // If step === 1, show only ValuationTabs section (hide header, footer, and other content)
@@ -2752,41 +2700,8 @@ const MakeModelFlow = () => {
                               setPendingAppointmentData(null);
                             }}
                             phoneNumber={pendingAppointmentData.contactInfo?.telephone || pendingAppointmentData.phone || ""}
-                            onVerify={(otpCode) => {
-                              console.log("---- otpCode ---", otpCode);
-                              
-                              // For demo purposes, accept any 6-digit code
-                              
-                                // OTP verified successfully
-                                // Confirm the appointment
-                                // handleAppointmentConfirm({...pendingAppointmentData, otpCode: otpCode});
-                                
-                                // Update appointment info and track analytics
-                                // updateAppointmentInfo(pendingAppointmentData);
-                                
-                                // Track appointment confirmation for analytics
-                                // trackAppointmentConfirm({
-                                //   date: pendingAppointmentData.date,
-                                //   time: pendingAppointmentData.time || pendingAppointmentData.specificTime?.timeSlot24Hour,
-                                //   location: pendingAppointmentData.location,
-                                //   locationId: pendingAppointmentData.locationId,
-                                // });
-                                
-                                // Close OTP modal
-                                // setShowOTPModal(false);
-                                // setPendingAppointmentData(null);
-                                
-                                // // Navigate to confirmation page
-                                // setTimeout(() => {
-                                //   navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
-                                // }, 100);
-                                
-                                // resolve();
-                              
-
-                            }}
+                            onVerify={async (otpCode) => {handleAppointmentConfirm({...pendingAppointmentData, otpCode: otpCode}); }}
                             onResendCode={async () => {
-                              console.log("---- onResendCode ---");
                               // TODO: Replace with actual API call to resend OTP
                               setIsSendingOTP(true);
                               setTimeout(() => {
