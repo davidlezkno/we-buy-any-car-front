@@ -209,12 +209,9 @@ const AppointmentModal = ({
     onConfirm(confirmedAppointment);
   };
 
-  const handleResendOTP = async () => {
-    // TODO: Replace with actual API call to resend OTP
+  const handleResendOTP = () => {
     setIsSendingOTP(true);
-    setTimeout(() => {
-      setIsSendingOTP(false);
-    }, 500);
+    handleConfirm();
   };
 
   const handleChangePhone = () => {

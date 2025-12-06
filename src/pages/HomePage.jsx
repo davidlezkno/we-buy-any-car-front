@@ -30,6 +30,7 @@ const HomePage = () => {
     const visitorId = getCookie("visitorId");
     if(visitorId){
       GetCustomerJourneyByVisit(visitorId).then(data => {
+        
         if(data.currentAppointment){
           setAppointmentData(data);
         }
@@ -143,7 +144,9 @@ const HomePage = () => {
       {appointmentData ? (
         <ChangeAppointment
           imageUrl={appointmentData.vehicleImageUrl}
-          text={`You have an appointment booked at our ${appointmentData.branchName} branch on ${appointmentData.date} at ${appointmentData.time}`}
+          text={`You have an appointment booked at our ${appointmentData?.currentAppointment?.branchName} branch 
+          on ${appointmentData?.currentAppointment?.appointmentDateTime.split('T')[0]} at 
+          ${appointmentData?.currentAppointment?.appointmentDateTime.split('T')[1].split('-')[0]}`}
           onButton1Click={handleChangeAppointment}
           onButton2Click={handleNewValuation}
         />

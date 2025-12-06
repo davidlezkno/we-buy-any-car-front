@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
-import { convertTo12Hour, getDayName, getGoogleMapsEmbedUrl, getNext12Days, getPeriod, isMobileDevice } from "../../utils/helpers";
+import { convertTo12Hour, getDayName, getGoogleMapsEmbedUrl, getNext12Days, getPeriod, isMobile, isMobileDevice } from "../../utils/helpers";
 import { getBrancheById, getBranchesByCustomerVehicle } from "../../services/branchService";
 import { weekDays } from "../../utils/model";
 
@@ -741,7 +741,7 @@ const CalendarScheduler = ({
                             location: location?.name || "",
                             phone: location?.phone || "",
                             date: selectedDateMobile,
-                            time: selectedTimeMobile,
+                            time: selectedTimeMobile || "",
                             firstName,
                             lastName,
                             telephone,
@@ -1019,6 +1019,7 @@ const CalendarScheduler = ({
                       return;
                     }
                     
+                    
                     if (onBookAppointment) {
                       const location = locations.find(
                         (loc) => loc.id === selectedLocationMobile,
@@ -1040,10 +1041,10 @@ const CalendarScheduler = ({
                       });
                     }
                   }}
-                  disabled={!firstName || !lastName || !telephone || !selectedTimeMobile || !address1 || !city}
+                  disabled={!firstName || !lastName || !telephone || (!selectedTimeMobile && !isMobile()) || !address1 || !city || !receiveSMS}
                   className="w-full bg-black text-white font-bold py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
                 >
-                  BOOK APPOINTMENT
+                  BOOK APPOINTMENToii
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>

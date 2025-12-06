@@ -24,10 +24,6 @@ export const decodeVIN = async (vin, retries = 2) => {
 
     const data = response.data.Results[0];
 
-    // if (data.ErrorCode !== '0') {
-    //   throw new Error('Invalid VIN number');
-    // }
-
     return {
       vin,
       make: data.Make,
@@ -45,9 +41,7 @@ export const decodeVIN = async (vin, retries = 2) => {
   } catch (error) {
     console.error('VIN decode error:', error);
     if (retries === 0) {
-      throw new Error(
-        'Failed to decode VIN. Please check the number and try again.'
-      );
+      return null;
     }
     return decodeVIN(vin, retries - 1);
   }
@@ -78,9 +72,7 @@ export const decodeLicensePlate = async (plate, state, retries = 2) => {
   } catch (error) {
     console.error('License plate lookup error:', error);
     if (retries === 0) {
-      throw new Error(
-        'Failed to lookup license plate. Please verify the information.'
-      );
+      return null;
     }
     return decodeLicensePlate(plate, state, retries - 1);
   }

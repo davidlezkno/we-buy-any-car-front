@@ -28,10 +28,11 @@ const Confirmation = () => {
   const headerRef = useRef(null);
   const trustpilotWidgetRef = useRef(null);
   const [branchInfo, setBranchInfo] = useState(null);
-  const [customerJourneyData, setCustomerJourneyData] = useState(null);
+  const [customerJourneyData, setCustomerJourneyData] = useState(null);  
+  const [appointmentInfoState, setAppointmentInfoState] = useState(appointmentInfo);
+
   useEffect(() => {
     const customerJourneyId = uid || localStorage.getItem("customerJourneyId");
-
     if(!customerJourneyData){
       GetCustomerJourney(customerJourneyId).then(customerJourney => {
         setCustomerJourneyData(customerJourney);
@@ -53,6 +54,7 @@ const Confirmation = () => {
             }
 
           }
+          
           setBranchInfo({
             name: branch.branchName,
             city: branch.city,
@@ -63,32 +65,51 @@ const Confirmation = () => {
             manager: branch.branchManagerName,
             hours: obj,
           });
+
+          if (appointmentInfoState == null) {
+              
+            setAppointmentInfoState({
+                date: customerJourney?.currentAppointment?.appointmentDateTime.split('T')[0],
+                specificTime:{
+                  timeSlot24Hour: customerJourney?.currentAppointment?.appointmentDateTime.split('T')[1].split('-')[0],
+                },
+                location: customerJourney?.currentAppointment?.branchName,
+                locationId: customerJourney?.currentAppointment?.branchId,
+                uid: customerJourney?.currentAppointment?.uid,
+                type: 'branch',
+                branchName: branch.branchName,
+                branchAddress: branch.address1,
+                branchPhone: branch.branchPhone,
+                branchEmail: branch.branchEmail,
+              })
+            }
+
         });
       });
     }
 
-    if (vehicleData) {
-      const branch = vehicleData.branchInfo;
-      const hoursData = {};
-      for(let i = 0; i < branch.operationHours.length; i++){
-        if(hoursData[branch.operationHours[i].dayOfWeek] && hoursData[branch.operationHours[i].dayOfWeek] != "Closed"){
-          hoursData[branch.operationHours[i].dayOfWeek] += ` - ${branch.operationHours[i].closeTime}`;
-        }else{
-          hoursData[branch.operationHours[i].dayOfWeek] = branch.operationHours[i].type == "open" ? branch.operationHours[i].openTime : "Closed";
-        }         
+    // if (vehicleData) {
+    //   const branch = vehicleData.branchInfo;
+    //   const hoursData = {};
+    //   for(let i = 0; i < branch.operationHours.length; i++){
+    //     if(hoursData[branch.operationHours[i].dayOfWeek] && hoursData[branch.operationHours[i].dayOfWeek] != "Closed"){
+    //       hoursData[branch.operationHours[i].dayOfWeek] += ` - ${branch.operationHours[i].closeTime}`;
+    //     }else{
+    //       hoursData[branch.operationHours[i].dayOfWeek] = branch.operationHours[i].type == "open" ? branch.operationHours[i].openTime : "Closed";
+    //     }         
 
-      }
-      setBranchInfo({
-        name: branch.branchName,
-        city: branch.city,
-        address: branch.address1,
-        fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
-        phone: branch.branchPhone,
-        email: branch.branchEmail,
-        manager: branch.branchManagerName,
-        hours: hoursData,
-      });
-    }
+    //   }
+    //   setBranchInfo({
+    //     name: branch.branchName,
+    //     city: branch.city,
+    //     address: branch.address1,
+    //     fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
+    //     phone: branch.branchPhone,
+    //     email: branch.branchEmail,
+    //     manager: branch.branchManagerName,
+    //     hours: hoursData,
+    //   });
+    // }
   }, [vehicleData]);
   const [expandedSections, setExpandedSections] = useState({
     checklist: true,
@@ -107,22 +128,17 @@ const Confirmation = () => {
 
   useEffect(() => { 
     // Redirect if no appointment info
-    if (!appointmentInfo) {
-      navigate("/");
-      return;
-    }
-
     // Scroll to main header after a short delay to ensure DOM is ready
     setTimeout(() => {
       const mainHeader = document.getElementById("main-header");
-      if (mainHeader) {
+      if (mainHeader && appointmentInfoState) {
         mainHeader.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         // Fallback: scroll to top if header not found
         window.scrollTo(0, 0);
       }
     }, 100);
-  }, [appointmentInfo, navigate]);
+  }, [appointmentInfoState, navigate]);
 
   // Initialize Trustpilot widget when component mounts
   useEffect(() => {
@@ -730,15 +746,15 @@ const Confirmation = () => {
 
   // Generate and download .ics file
   const handleAddToCalendar = () => {
-    if (!appointmentInfo) return;
+    if (!appointmentInfoState) return;
 
-    const appointmentDate = appointmentInfo.date || appointmentInfo.dateFormatted;
-    const appointmentTime = appointmentInfo.specificTime?.timeSlot24Hour || appointmentInfo.time || "9:00 AM";
-    const location = appointmentInfo.location || branchInfo.name;
+    const appointmentDate = appointmentInfoState?.date || appointmentInfoState?.dateFormatted;
+    const appointmentTime = appointmentInfoState?.specificTime?.timeSlot24Hour || appointmentInfoState?.time || "9:00 AM";
+    const location = appointmentInfoState?.location || branchInfo.name;
     
     // Generate UID (unique identifier for the event)
-    const uid = appointmentInfo.locationId || 
-                appointmentInfo.uid || 
+    const uid = appointmentInfoState?.locationId || 
+                appointmentInfoState?.uid || 
                 `appointment-${Date.now()}@webuyanycarusa.com`;
     
     // Format dates
@@ -841,13 +857,13 @@ const Confirmation = () => {
     "Off Broadway Street: After the K-Mart but before the Enterprise Rent A Car ONTO 54th Street towards Molnar Drive.",
   ];
 
-  if (!appointmentInfo) {
-    return null;
-  }
+  // if (!appointmentInfoState) {
+  //   return null;
+  // }
   
 
   return (
-    branchInfo && (
+    branchInfo && appointmentInfoState && (
     <div className="section-container py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4" ref={contentRef}>
         {/* Title Bar */}
@@ -861,7 +877,7 @@ const Confirmation = () => {
             <div className="lg:col-span-3 hidden lg:block">
               <div className="bg-white rounded-lg p-4 shadow-md text-center">
                 <h2 className="text-lg font-bold text-gray-900">
-                  {branchInfo.name}
+                  {branchInfo.name || branchInfo.branchName}
                 </h2>
                 <p className="text-sm text-gray-600">{branchInfo.city}</p>
               </div>
@@ -886,26 +902,24 @@ const Confirmation = () => {
                   <div className="flex justify-between items-center py-3 border-b border-gray-200">
                     <span className="font-semibold text-gray-700">Branch</span>
                     <span className="text-gray-900">
-                      {appointmentInfo.location
-                        ? `${appointmentInfo.location} (${!branchInfo.city ? "NJ" : branchInfo.city})`
-                        : `${branchInfo.name} (${!branchInfo.city ? "NJ" : branchInfo.city})`}
+                      {appointmentInfoState?.location
+                        ? `${appointmentInfoState?.location} (${!branchInfo.city ? "NJ" : branchInfo.city})`
+                        : `${branchInfo.name || branchInfo.branchName} (${!branchInfo.city ? "NJ" : branchInfo.city})`}
                   </span>
                 </div>
                   <div className="flex justify-between items-center py-3 border-b border-gray-200">
                     <span className="font-semibold text-gray-700">Date</span>
                     <span className="text-gray-900">
-                      {appointmentInfo.dateFormatted
-                        ? appointmentInfo.dateFormatted
-                        : appointmentInfo.date
-                          ? formatDate(appointmentInfo.date)
-                          : "Not specified"}
+                      {
+                        appointmentInfoState?.date || appointmentInfoState?.date || formatDate(appointmentInfoState?.date) || "Not specified"
+                      }
                     </span>
                 </div>
                   <div className="flex justify-between items-center py-3">
                     <span className="font-semibold text-gray-700">Time</span>
                     <span className="text-gray-900">
-                      {appointmentInfo.specificTime?.timeSlot24Hour ||
-                        appointmentInfo.time ||
+                      {appointmentInfoState?.specificTime?.timeSlot24Hour ||
+                        appointmentInfoState?.time ||
                         "Not specified"}
                     </span>
                 </div>

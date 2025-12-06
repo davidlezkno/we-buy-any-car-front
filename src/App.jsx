@@ -31,7 +31,7 @@ function App() {
               <Route path="/valuation/vehiclecondition/:uid" element={<MakeModelFlow />} />
               <Route path="/secure/bookappointment/:uid" element={<MakeModelFlow />} />
               <Route path="/valuation/confirmation/:uid" element={<Confirmation />} />
-              <Route path="/confirmation" element={<Confirmation />} />
+              <Route path="/confirmation/:uid" element={<Confirmation />} />
               {/* Legacy routes stay available to honor existing inbound links. */}
               <Route path="/sell-by-plate" element={<LicensePlateFlow />} />
               <Route path="/appointment" element={<AppointmentFlow />} />

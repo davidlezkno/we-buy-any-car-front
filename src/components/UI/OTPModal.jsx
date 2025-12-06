@@ -127,7 +127,7 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
   const handleResendCode = async () => {
     setShowResendMessage(false);
     if (onResendCode) {
-      await onResendCode();
+      onResendCode();
       setShowResendMessage(true);
       setTimeout(() => setShowResendMessage(false), 5000);
     }
@@ -182,6 +182,7 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
                   id="wrong-number"
                   href="#"
                   onClick={(e) => {
+                    setShowResendMessage(false);
                     e.preventDefault();
                     onChangePhone();
                   }}

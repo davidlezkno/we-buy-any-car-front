@@ -1112,35 +1112,16 @@ const MakeModelFlow = () => {
       }
       
     }).catch(error => {
-      // updateVehicleData({
-      //   ...vehicleData,
-      //   branchInfo: branchSelect,
-      // });
-      // updateAppointmentInfo(selectedAppointment);
+      updateVehicleData({
+        ...vehicleData,
+        branchInfo: branchSelect,
+      });
+      updateAppointmentInfo(selectedAppointment);
+      navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
       alert("The OTP you entered is invalid or has expired. Please try again");
-      // navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
-      // console.error("Error creating appointment:", error);
     });
 
   };
-
-  // const handleFinalSubmit = () => {
-  //   if (selectedAppointment) {
-  //     updateAppointmentInfo(selectedAppointment);
-
-  //     // Track appointment confirmation for analytics
-  //     trackAppointmentConfirm({
-  //       date: selectedAppointment.date,
-  //       time: selectedAppointment.time || selectedAppointment.specificTime?.timeSlot24Hour,
-  //       location: selectedAppointment.location,
-  //       locationId: selectedAppointment.locationId,
-  //     });
-
-  //     // Navigate to confirmation page - URL changes to /valuation/confirmation
-  //     // This URL change will be detected by Google Tag Manager and GA4
-  //     navigate("/valuation/confirmation", { replace: true });
-  //   }
-  // };
 
   const handleSearchByZip = (zipCode) => {
     
@@ -2596,6 +2577,8 @@ const MakeModelFlow = () => {
                           selectedLocation={selectedAppointment}
                           initialPhone={watchPhone || vehicleData?.phone || userInfo?.phone || ""}
                           onBookAppointment={(appointmentData) => {
+
+                            console.log("-------", appointmentData);
                             // Validate SMS checkbox is required
                             if (!appointmentData.receiveSMS) {
                               // This should not happen as validation is done in CalendarScheduler
