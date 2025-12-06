@@ -35,17 +35,27 @@ export const getBrancheById = async (idBranch, retries = 3) => {
   }
 };
 
-export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId, retries = 3) => {
+export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId) => {
   try {
     const token = sessionStorage.getItem('token');
     const headers = {
       'Authorization': `Bearer ${token}`
     };
+
+    
+    // if(zipCode == "" || zipCode == null){
+    //   zipCode = localStorage.getItem("zipCode");
+    // }
+
+    if(customerVehicleId == "" || customerVehicleId == null){
+      customerVehicleId = localStorage.getItem("customerVehicleId");
+    }
+
     const response = await httpClient.get(`http://localhost:5001/api/Appointment/availability/${zipCode}/${customerVehicleId}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
-    if (retries === 0) return [];
-    return getBranchesByCustomerVehicle(zipCode, customerVehicleId, retries - 1);
+    return [];
+   
   }
 };

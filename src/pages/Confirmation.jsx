@@ -28,42 +28,45 @@ const Confirmation = () => {
   const headerRef = useRef(null);
   const trustpilotWidgetRef = useRef(null);
   const [branchInfo, setBranchInfo] = useState(null);
+  const [customerJourneyData, setCustomerJourneyData] = useState(null);
   useEffect(() => {
-    console.log("valuation/confirmation ---- vehicleData ----", vehicleData);
     const customerJourneyId = uid || localStorage.getItem("customerJourneyId");
-    GetCustomerJourney(customerJourneyId).then(customerJourney => {
-      getBrancheById(customerJourney.closestBranchContactInfo.branchId).then(branchRps => {
-        const branch = branchRps.branchLocation;
-        let obj = {};
-        for(let i = 0; i < branch.operationHours.length; i++){
-          const hour = branch.operationHours[i];
-          if(hour.type === "open"){
-            obj[weekDays.indexOf(hour.dayOfWeek)] = obj[weekDays.indexOf(hour.dayOfWeek)] ? {
-              Morning: obj[weekDays.indexOf(hour.dayOfWeek)].Morning || getPeriod(hour.openTime) == "Morning",
-              Afternoon: obj[weekDays.indexOf(hour.dayOfWeek)].Afternoon || getPeriod(hour.openTime) == "Afternoon",
-              Evening: obj[weekDays.indexOf(hour.dayOfWeek)].Evening || getPeriod(hour.closeTime) == "Evening",
-            } : {
-              Morning: getPeriod(hour.openTime) == "Morning",
-              Afternoon: getPeriod(hour.openTime) == "Afternoon",
-              Evening: getPeriod(hour.closeTime) == "Evening",
-            };
-          }
 
-        }
-        setBranchInfo({
-          name: branch.branchName,
-          city: branch.city,
-          address: branch.address1,
-          fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
-          phone: branch.branchPhone,
-          email: branch.branchEmail,
-          manager: branch.branchManagerName,
-          hours: obj,
+    if(!customerJourneyData){
+      GetCustomerJourney(customerJourneyId).then(customerJourney => {
+        setCustomerJourneyData(customerJourney);
+        getBrancheById(customerJourney.closestBranchContactInfo.branchId).then(branchRps => {
+          const branch = branchRps.branchLocation;
+          let obj = {};
+          for(let i = 0; i < branch.operationHours.length; i++){
+            const hour = branch.operationHours[i];
+            if(hour.type === "open"){
+              obj[weekDays.indexOf(hour.dayOfWeek)] = obj[weekDays.indexOf(hour.dayOfWeek)] ? {
+                Morning: obj[weekDays.indexOf(hour.dayOfWeek)].Morning || getPeriod(hour.openTime) == "Morning",
+                Afternoon: obj[weekDays.indexOf(hour.dayOfWeek)].Afternoon || getPeriod(hour.openTime) == "Afternoon",
+                Evening: obj[weekDays.indexOf(hour.dayOfWeek)].Evening || getPeriod(hour.closeTime) == "Evening",
+              } : {
+                Morning: getPeriod(hour.openTime) == "Morning",
+                Afternoon: getPeriod(hour.openTime) == "Afternoon",
+                Evening: getPeriod(hour.closeTime) == "Evening",
+              };
+            }
+
+          }
+          setBranchInfo({
+            name: branch.branchName,
+            city: branch.city,
+            address: branch.address1,
+            fullAddress: `${branch.address1}, ${branch.city}, ${branch.state} ${branch.zipCode}`,
+            phone: branch.branchPhone,
+            email: branch.branchEmail,
+            manager: branch.branchManagerName,
+            hours: obj,
+          });
         });
-        console.log("---- branch ---", branch);
-        
       });
-    });
+    }
+
     if (vehicleData) {
       const branch = vehicleData.branchInfo;
       const hoursData = {};
@@ -85,7 +88,6 @@ const Confirmation = () => {
         manager: branch.branchManagerName,
         hours: hoursData,
       });
-      console.log("---- branchInfo ---", branchInfo);
     }
   }, [vehicleData]);
   const [expandedSections, setExpandedSections] = useState({

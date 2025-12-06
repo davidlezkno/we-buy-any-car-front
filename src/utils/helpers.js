@@ -45,7 +45,6 @@ export const getGoogleMapsEmbedUrl = (lat, lng) => {
 
 export const isMobileDevice = () => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  console.log("---- isMobile ---", isMobile);
   return isMobile;
 }
 
@@ -69,7 +68,7 @@ export const getNext12Days = () => {
   const dates = [];
   const today = new Date();
 
-  for (let i = 0; i <= 7; i++) {
+  for (let i = 0; i <= 6; i++) {
     const newDate = new Date();
     newDate.setDate(today.getDate() + i);
 

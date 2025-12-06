@@ -10,7 +10,7 @@ export const ROUTES = {
   VALUATION: '/valuation',
   VALUATION_DETAILS: '/valuation/vehicledetails',
   VALUATION_CONDITION: '/valuation/vehiclecondition',
-  VALUATION_APPOINTMENT: '/valuation/appointment',
+  VALUATION_APPOINTMENT: '/secure/bookappointment',
   VALUATION_CONFIRMATION: '/valuation/confirmation',
   LICENSE_PLATE_FLOW: '/sell-by-plate',
   APPOINTMENT_FLOW: '/appointment',

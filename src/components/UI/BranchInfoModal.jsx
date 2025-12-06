@@ -72,7 +72,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         />
 
-        {/* Modal - Más compacto */}
+        {/* Modal - More compact */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -80,7 +80,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
           className="relative w-full max-w-5xl bg-white rounded-lg shadow-2xl z-10 max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header compacto */}
+          {/* Compact header */}
           <div
             className="flex items-center justify-between p-3 md:p-4 sticky top-0 z-20 rounded-t-lg"
             style={{ backgroundColor: "#20B24D" }}
@@ -102,10 +102,10 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
             </button>
           </div>
 
-          {/* Content - Layout más compacto */}
+          {/* Content - More compact layout */}
           <div className="p-3 md:p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
-              {/* Columna 1: Mapa */}
+              {/* Column 1: Map */}
               <div className="md:col-span-1">
                 <div className="branch-map rounded-lg overflow-hidden" style={{ height: "250px" }}>
                   <iframe
@@ -120,7 +120,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
                 </div>
               </div>
 
-              {/* Columna 2: Detalles de la sucursal */}
+              {/* Column 2: Branch Details */}
               <div className="md:col-span-1">
                 <div className="branch-details-wrapper">
                   <div className="mb-3">
@@ -166,7 +166,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
                     </div>
                   )}
 
-                  {/* Branch Links - más compactos */}
+                  {/* Branch Links - more compact */}
                   <div className="space-y-1.5 text-xs">
                     <div className="flex items-center gap-1.5 text-primary-600">
                       <MapPin className="w-3 h-3 flex-shrink-0" />
@@ -203,7 +203,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
                 </div>
               </div>
 
-              {/* Columna 3: Horarios */}
+              {/* Column 3: Hours */}
               <div className="md:col-span-1">
                 <div className="branch-timings-outer">
                   <h3 className="text-base font-bold text-gray-900 mb-2">
@@ -232,7 +232,7 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
               </div>
             </div>
 
-            {/* Descripción y áreas servidas - más compacto */}
+            {/* Description and areas served - more compact */}
             <div className="grid grid-cols-1 md:grid-cols-10 gap-4 text-sm">
               <div className="md:col-span-10">
                 <p className="text-gray-700 leading-relaxed mb-2">{data.description}</p>
