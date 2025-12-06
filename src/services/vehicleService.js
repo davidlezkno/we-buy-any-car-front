@@ -8,6 +8,7 @@ import httpClient from './utils/httpClient';
 import { getCookie, random10Digits } from '../utils/helpers';
 
 
+
 // External API endpoints
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
 

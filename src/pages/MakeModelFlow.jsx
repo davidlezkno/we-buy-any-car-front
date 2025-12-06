@@ -342,6 +342,20 @@ const MakeModelFlow = () => {
     return phone.replace(/\D/g, "");
   };
 
+  // Function to extract only digits from number (for odometer)
+  const getDigitsOnlyNumber = (value) => {
+    return value.toString().replace(/\D/g, "");
+  };
+
+  // Function to format number with commas (e.g., 100000 -> 100,000)
+  const formatNumberWithCommas = (value) => {
+    const digits = getDigitsOnlyNumber(value);
+    if (digits === "") return "";
+    const number = parseInt(digits, 10);
+    if (isNaN(number)) return "";
+    return number.toLocaleString("en-US");
+  };
+
   // Function to format phone number as (XXX) XXX XXXX
   const formatPhoneNumber = (phone) => {
     const digits = getDigitsOnly(phone);
@@ -1178,7 +1192,7 @@ const MakeModelFlow = () => {
   }
 
   return (
-    <div className="section-container pt-4 pb-8 md:pt-4 md:pb-12 relative overflow-hidden">
+    <div className="section-container pb-8 md:pt-4 md:pb-12 relative overflow-hidden" style={{ paddingTop: '4px' }}>
       {/* Efectos de fondo decorativos */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-10 w-96 h-96 bg-primary-100/30 rounded-full blur-[120px]"></div>
@@ -1517,6 +1531,12 @@ const MakeModelFlow = () => {
                               : "linear-gradient(135deg, #000000 0%, #1a1a1a 100%)",
                           color: "#FFFFFF",
                           borderColor: !watchSeries || !watchBodyType ? "#9ca3af" : "#000000",
+                          outline: "none",
+                          border: "none",
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.outline = "none";
+                          e.target.style.boxShadow = "none";
                         }}
                       >
                         Continue To Step 3
@@ -1545,7 +1565,12 @@ const MakeModelFlow = () => {
                 >
                   <div className="mb-0 md:mb-8">
                     <h2 className="text-[16px] md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-                      Vehicle Condition & Your Information
+                      
+                      {vehicleData?.year && vehicleData?.make && vehicleData?.model && (
+                        <span className="block text-sm md:text-xl font-normal text-black-600 mt-1 md:mt-2">
+                          {vehicleData.year} {vehicleData.make} {vehicleData.model}
+                        </span>
+                      )}
                     </h2>
                   </div>
 
@@ -1712,20 +1737,48 @@ const MakeModelFlow = () => {
                       </div>
 
                       {/* Added unique IDs for automation testing */}
-                      <Input
-                        label="What Does the Odometer Read?"
-                        type="number"
-                        inputMode="numeric"
-                        placeholder="Enter Vehicle Mileage"
-                        error={errors.odometer?.message}
-                        id="odometer-input"
-                        {...register("odometer", {
+                      <Controller
+                        name="odometer"
+                        control={control}
+                        rules={{
                           required: "Odometer reading is required",
-                          min: {
-                            value: 0,
-                            message: "Odometer must be positive",
+                          validate: (value) => {
+                            const digits = getDigitsOnlyNumber(value || "");
+                            if (digits === "") {
+                              return "Odometer reading is required";
+                            }
+                            const number = parseInt(digits, 10);
+                            if (isNaN(number) || number < 0) {
+                              return "Odometer must be positive";
+                            }
+                            return true;
                           },
-                        })}
+                        }}
+                        render={({ field, fieldState }) => {
+                          // Get the raw value (digits only) from the form
+                          const rawValue = field.value || "";
+                          // Format it for display
+                          const displayValue = rawValue ? formatNumberWithCommas(rawValue) : "";
+                          
+                          return (
+                            <Input
+                              label="What Does the Odometer Read?"
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="Enter Vehicle Mileage"
+                              error={fieldState.error?.message}
+                              id="odometer-input"
+                              value={displayValue}
+                              onChange={(e) => {
+                                // Only allow numbers, remove commas and points
+                                const digits = getDigitsOnlyNumber(e.target.value);
+                                // Store only digits (without commas) in the form
+                                field.onChange(digits);
+                              }}
+                              onBlur={field.onBlur}
+                            />
+                          );
+                        }}
                       />
                     </div>
 
@@ -1861,6 +1914,12 @@ const MakeModelFlow = () => {
                             !watchEmail
                               ? "#9ca3af"
                               : "#000000",
+                          outline: "none",
+                          border: "none",
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.outline = "none";
+                          e.target.style.boxShadow = "none";
                         }}
                       >
                         See Your Valuation
@@ -2268,6 +2327,12 @@ const MakeModelFlow = () => {
                             !watchReportedAccident
                               ? "#9ca3af"
                               : "#000000",
+                          outline: "none",
+                          border: "none",
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.outline = "none";
+                          e.target.style.boxShadow = "none";
                         }}
                       >
                         See Your Valuation
@@ -2719,17 +2784,17 @@ const MakeModelFlow = () => {
 
                     {/* Branch Information Section - Only if vehicle DOES run */}
                     {vehicleData?.runsAndDrives !== "No" && (
-                      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-4 md:mt-0">
+                      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-4 md:mt-0 nearest-branch-container">
                         <div className="text-lg md:text-xl font-bold text-gray-900 mb-4">
                           Your nearest branch is
                           <br />
                           {firstBranch?.distance} miles away
                         </div>
                         <hr className="border-t border-gray-300 my-6 max-w-xs mx-auto" />
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                          Pompano Beach {firstBranch?.branchLocation?.branchName}
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 nearest-branch-title">
+                          {firstBranch?.branchLocation?.branchName}
                         </h1>
-                        <p className="mb-6">
+                        <p className="mb-6 nearest-branch-address">
                           <a
                             href={firstBranch?.branchLocation?.mapURL}
                             target="_blank"
@@ -2737,7 +2802,6 @@ const MakeModelFlow = () => {
                             className="text-primary-600 hover:text-primary-800 underline"
                           >
                             {firstBranch?.branchLocation?.address1}
-                            <br />
                             <br />
                             {firstBranch?.branchLocation?.city}, {firstBranch?.branchLocation?.state} {firstBranch?.branchLocation?.zipCode}
                           </a>

@@ -36,8 +36,8 @@ export default {
         }
       },
       fontFamily: {
-        // Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows)
-        sans: ['Arial Rounded MT Bold', 'Arial', 'Tahoma', 'Verdana', 'system-ui', 'sans-serif'],
+        // Custom Font con fallbacks
+        sans: ['CustomFont', 'Arial Rounded MT Bold', 'Arial', 'Tahoma', 'Verdana', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

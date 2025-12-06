@@ -123,7 +123,7 @@ const HomePage = () => {
   }
 
   const handleOpenVinModal = useCallback(() => {
-    // setIsVinHelpModalOpen(true);
+    setIsVinHelpModalOpen(true);
   }, []);
 
   const handleCloseVinModal = useCallback(() => {
