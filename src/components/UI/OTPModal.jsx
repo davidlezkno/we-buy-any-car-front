@@ -109,18 +109,32 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
 
     setIsLoading(true);
     setError("");
+    
     try {
       if (onVerify) {
-        // Wait for onVerify to complete, but DO NOT close the modal automatically
-        onVerify(code);
-        // If onVerify completes without error, keep the modal open
-        // The modal will only close manually when the user requests it
-        setIsLoading(false);
+        // Call onVerify and wait for result
+        const result = await onVerify(code);
+        
+        // If verification was successful (result === true), close modal
+        if (result === true) {
+          setIsLoading(false);
+          onClose(); // Close modal on success
+        } else {
+          // Verification failed - show error and stay on modal
+          setError("Invalid code. Please try again.");
+          setIsLoading(false);
+          // Clear OTP inputs to allow retry
+          setOtp(["", "", "", "", "", ""]);
+          inputRefs.current[0]?.focus();
+        }
       }
     } catch (err) {
+      // Error during verification - show error and stay on modal
       setError(err.message || "Invalid code. Please try again.");
       setIsLoading(false);
-      // DO NOT close the modal on error - allow the user to try again
+      // Clear OTP inputs to allow retry
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     }
   };
 

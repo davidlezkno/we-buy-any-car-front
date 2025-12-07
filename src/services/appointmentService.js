@@ -71,7 +71,7 @@ export const createAppointment = async (appointmentData, retries = 2) => {
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/Appointment/book`, appointmentData, { headers });
+    const response = await httpClient.post(`/api/Appointment/book`, appointmentData, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -88,7 +88,7 @@ export const cancelAppointment = async (customerVehicleId, phoneNumber , retries
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/Appointment/book`, {customerVehicleId, phoneNumber}, { headers });
+    const response = await httpClient.post(`/api/Appointment/book`, {customerVehicleId, phoneNumber}, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -104,7 +104,7 @@ export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumb
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber }, { headers });
+    const response = await httpClient.post(`/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber }, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -121,7 +121,7 @@ export const sendSmS  = async (customerVehicleId, recipient, message = "", retri
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/Sms/send`, { customerVehicleId, recipient, message }, { headers });
+    const response = await httpClient.post(`/api/Sms/send`, { customerVehicleId, recipient, message }, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);

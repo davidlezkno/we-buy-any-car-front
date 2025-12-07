@@ -9,10 +9,9 @@ import {
   GetCustomerJourney, 
   CustomerDetailJourney, 
   UpdateCustomerJourney,
-  getSeries,
-  getImageVehicle 
 } from '../../services/vehicleService';
 import { cleanObject, formatPhone } from '../../utils/helpers';
+import { getUserFriendlyMessage } from '../../services/errorHandler';
 
 /**
  * Custom hook for customer journey operations
@@ -43,9 +42,20 @@ export function useCustomerJourney(journeyId) {
       setCustomerJourneyData(data);
       return data;
     } catch (err) {
+      const errorMessage = getUserFriendlyMessage(err);
       console.error('Error getting customer journey:', err);
-      setError(err.message || 'Failed to fetch journey');
-      navigate('/');
+      setError(errorMessage);
+      
+      // Show toast notification
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error');
+      }
+      
+      // Only navigate away if it's a critical error (404, 403)
+      if (err.response?.status === 404 || err.response?.status === 403) {
+        navigate('/');
+      }
+      
       return null;
     } finally {
       setLoading(false);
@@ -72,8 +82,14 @@ export function useCustomerJourney(journeyId) {
       setCustomerJourneyData(prev => ({ ...prev, ...cleanResponse }));
       return cleanResponse;
     } catch (err) {
+      const errorMessage = getUserFriendlyMessage(err);
       console.error('Error updating customer journey:', err);
-      setError(err.message || 'Failed to update journey');
+      setError(errorMessage);
+      
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error');
+      }
+      
       throw err;
     } finally {
       setLoading(false);
@@ -92,7 +108,7 @@ export function useCustomerJourney(journeyId) {
 
     try {
       const payload = {
-        mileage: data.odometer,
+        mileage: parseInt(data.odometer) || 0,
         zipCode: data.zipCode,
         email: data.email,
         isFinancedOrLeased: data.hasClearTitle === 'Yes',
@@ -113,8 +129,14 @@ export function useCustomerJourney(journeyId) {
       
       return cleanResponse;
     } catch (err) {
+      const errorMessage = getUserFriendlyMessage(err);
       console.error('Error updating customer journey:', err);
-      setError(err.message || 'Failed to update journey');
+      setError(errorMessage);
+      
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error');
+      }
+      
       throw err;
     } finally {
       setLoading(false);

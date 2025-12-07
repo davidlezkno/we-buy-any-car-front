@@ -394,16 +394,49 @@ const MakeModelFlow = () => {
         otpCode: appointmentData.otpCode,
       });
 
-      if (response) {
+      
+
+      // Check if response indicates success
+      // Backend might return { success: true } or { isValid: true } or just true
+      const isSuccess = response === true || 
+                       response?.success === true || 
+                       response?.isValid === true ||
+                       response?.isSuccess === true ||
+                       (response && !response.error && !response.message?.toLowerCase().includes('invalid'));
+
+      if (isSuccess) {
+        // OTP verification successful - proceed to confirmation
         updateVehicleData({ ...vehicleData, branchInfo: branchSelect });
         updateAppointmentInfo(appointmentData);
+        
+        // Show success message
+        if (window.showToast) {
+          window.showToast('Appointment confirmed successfully!', 'success');
+        }
+        
         navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
+        return true; // Indicate success
       } else {
-        alert('The OTP you entered is invalid or has expired. Please try again');
+        // OTP verification failed - stay on current page
+        const errorMessage = response?.message || 'The OTP you entered is invalid or has expired. Please try again.';
+        console.error('OTP verification failed:', response);
+        
+        if (window.showToast) {
+          window.showToast(errorMessage, 'error');
+        }
+        
+        return false; // Indicate failure
       }
     } catch (error) {
+      // Error during appointment creation - stay on current page
       console.error('Error creating appointment:', error);
-      alert('The OTP you entered is invalid or has expired. Please try again');
+      const errorMessage = error.response?.data?.message || 'Failed to create appointment. Please try again.';
+      
+      if (window.showToast) {
+        window.showToast(errorMessage, 'error');
+      }
+      
+      return false; // Indicate failure
     }
   }, [branches.branchesData, vehicleData, updateVehicleData, updateAppointmentInfo, navigate, customerJourneyId]);
 
@@ -558,8 +591,9 @@ const MakeModelFlow = () => {
                   setShowOTPModal(false);
                   setPendingAppointmentData(null);
                 }}
-                onOTPVerify={(otpCode) => {
-                  handleAppointmentConfirm({ ...pendingAppointmentData, otpCode });
+                onOTPVerify={async (otpCode) => {
+                  const result = await handleAppointmentConfirm({ ...pendingAppointmentData, otpCode });
+                  return result; // Return true on success, false on failure
                 }}
                 onOTPResend={() => {}}
                 onResetFlow={resetFlow}

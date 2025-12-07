@@ -110,7 +110,7 @@ const Confirmation = () => {
     //     hours: hoursData,
     //   });
     // }
-  }, [vehicleData]);
+  }, [appointmentInfoState, customerJourneyData, uid, vehicleData]);
   const [expandedSections, setExpandedSections] = useState({
     checklist: true,
     landmarks: false,
@@ -899,31 +899,31 @@ const Confirmation = () => {
               </div>
               <div className="p-6">
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <span className="font-semibold text-gray-700">Branch</span>
-                    <span className="text-gray-900">
+                  <div className="flex items-start py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Branch</span>
+                    <span className="text-gray-900 flex-1">
                       {appointmentInfoState?.location
                         ? `${appointmentInfoState?.location} (${!branchInfo.city ? "NJ" : branchInfo.city})`
                         : `${branchInfo.name || branchInfo.branchName} (${!branchInfo.city ? "NJ" : branchInfo.city})`}
-                  </span>
-                </div>
-                  <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <span className="font-semibold text-gray-700">Date</span>
-                    <span className="text-gray-900">
+                    </span>
+                  </div>
+                  <div className="flex items-start py-3 border-b border-gray-200">
+                    <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Date</span>
+                    <span className="text-gray-900 flex-1">
                       {
                         appointmentInfoState?.date || appointmentInfoState?.date || formatDate(appointmentInfoState?.date) || "Not specified"
                       }
                     </span>
-                </div>
-                  <div className="flex justify-between items-center py-3">
-                    <span className="font-semibold text-gray-700">Time</span>
-                    <span className="text-gray-900">
+                  </div>
+                  <div className="flex items-start py-3">
+                    <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Time</span>
+                    <span className="text-gray-900 flex-1">
                       {appointmentInfoState?.specificTime?.timeSlot24Hour ||
                         appointmentInfoState?.time ||
                         "Not specified"}
                     </span>
+                  </div>
                 </div>
-              </div>
                 <button
                   id="add-to-calendar"
                   onClick={handleAddToCalendar}

@@ -85,7 +85,7 @@ export const getVehicleMakes = async (year, retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/makes/${year.toString()}`, { headers });
+    const response = await httpClient.get(`/api/Vehicles/makes/${year.toString()}`, { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get makes error:', error);
@@ -102,7 +102,7 @@ export const createVisitorID = async (retries = 2) => {
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `http://localhost:5001/api/Attribution/visitor`, 
+      `/api/Attribution/visitor`, 
       { oldVisitorId: random10Digits()}, 
       { headers }
     );
@@ -122,7 +122,7 @@ export const createCustomerJourney = async (year,make,model, visitId = 1, retrie
       'Authorization': `Bearer ${token}`
     };
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey`, 
+      `/api/customer-journey`, 
       {year: year, make: make, model: model, visitId: visitId}, 
       { headers }
     );
@@ -146,7 +146,7 @@ export const createCustomerJourneyByPlate = async (  visitId, plateNumber, plate
     visitId = visitId|| getCookie("visitorId");
 
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/plate`, 
+      `/api/customer-journey/plate`, 
       {visitId: visitId, plateNumber: plateNumber, plateState: plateState}, 
       { headers }
     );
@@ -169,7 +169,7 @@ export const createCustomerJourneyByVin = async ( vin = 1 , visitId ) => {
     visitId = visitId|| getCookie("visitorId");
 
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/vin`, 
+      `/api/customer-journey/vin`, 
       {visitId: visitId, vin: vin}, 
       { headers }
     );
@@ -189,7 +189,7 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
+    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -216,7 +216,7 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
       'Authorization': `Bearer ${token}`
     };
     
-    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
+    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -233,7 +233,7 @@ export const GetCustomerJourney = async (customerJourneyId, retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}`, { headers });
+    const response = await httpClient.get(`/api/customer-journey/${customerJourneyId.toString()}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -251,7 +251,7 @@ export const GetCustomerJourneyByVisit = async (visitId, retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${visitId.toString()}`, { headers });
+    const response = await httpClient.get(`/api/customer-journey/${visitId.toString()}`, { headers });
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -271,7 +271,7 @@ export const getSeries = async (year,model,make, retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
+    const response = await httpClient.get(`/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
     { headers });
     return response.data.sort();
   } catch (error) {
@@ -287,7 +287,7 @@ export const getModelsByMake = async (year,make, retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/models/${year.toString()}/${make.toString()}`, { headers });
+    const response = await httpClient.get(`/api/Vehicles/models/${year.toString()}/${make.toString()}`, { headers });
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
@@ -306,7 +306,7 @@ export const getVehicleYears = async (retries = 2) => {
     const headers = {
       'Authorization': `Bearer ${token}`
     };
-    const response = await httpClient.get('http://localhost:5001/api/Vehicles/years', { headers });
+    const response = await httpClient.get('/api/Vehicles/years', { headers });
     
     return response.data;
   } catch (error) {
@@ -320,17 +320,18 @@ export const getVehicleYears = async (retries = 2) => {
 export const getImageVehicle = async (externalUrl, retries = 2) => {
   try {
     const token = sessionStorage.getItem('token');
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
     const headers = {
       'Authorization': `Bearer ${token}`
     };
     
     const response = await fetch(
-      `http://localhost:5001/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
+      `${API_BASE_URL}/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
       { headers }
     );
 
     const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob); // URL para usar en <img>
+    const objectUrl = URL.createObjectURL(blob);
     return objectUrl;
     
   } catch (error) {

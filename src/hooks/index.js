@@ -22,4 +22,5 @@ export { useCustomerJourney } from './domain/useCustomerJourney';
 export { useVehicleSeries } from './domain/useVehicleSeries';
 export { useBranches } from './domain/useBranches';
 export { useDamageForm } from './domain/useDamageForm';
+export { useFlowState } from './domain/useFlowState';
 
