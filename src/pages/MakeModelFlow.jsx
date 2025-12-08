@@ -39,7 +39,8 @@ import {
 
 // Services
 import { saveValuationVehicle } from '../services/valuationService';
-import { createAppointment } from '../services/appointmentService';
+import { createAppointment, rescheduleAppointment } from '../services/appointmentService';
+import { UpdateCustomerJourney } from '../services/vehicleService';
 
 // Utils
 import { cleanObject, formatPhone, formatUSD } from '../utils/helpers';
@@ -104,11 +105,21 @@ const MakeModelFlow = () => {
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState(null);
   const [step4Initialized, setStep4Initialized] = useState(false);
+  const [zipCodeError, setZipCodeError] = useState(null);
 
   // Scroll to content when step changes
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Log reschedule status when on step 4
+    if (step === 4) {
+      const existingAppointmentId = localStorage.getItem('existingAppointmentId');
+      console.log('📅 [MakeModelFlow] Step 4 loaded - Reschedule mode:', {
+        existingAppointmentId,
+        isReschedule: !!existingAppointmentId
+      });
     }
   }, [step]);
 
@@ -231,7 +242,7 @@ const MakeModelFlow = () => {
       // Save valuation
       const valuationResponse = await saveValuationVehicle({
         cvid: cleanData?.customerVehicleId || customerJourneyData?.customerVehicleId,
-        mileage: data.odometer,
+        mileage: parseInt(data.odometer?.toString().replace(/,/g, '') || '0'),
         zipCode: data.zipCode,
         email: data.email,
         isFinancedOrLeased: data.hasClearTitle === 'Yes',
@@ -267,6 +278,21 @@ const MakeModelFlow = () => {
       }
     } catch (error) {
       console.error('Error processing valuation:', error);
+      
+      // Only set ZIP code error if it's actually a ZIP code related error
+      const errorMessage = error.response?.data?.message || error.message || '';
+      const isZipCodeError = errorMessage.toLowerCase().includes('zip') || 
+                            errorMessage.toLowerCase().includes('postal') ||
+                            error.response?.data?.errors?.zipCode;
+      
+      if (isZipCodeError) {
+        setZipCodeError('Please enter the ZIP code closest to where you intend to sell the vehicle');
+      } else {
+        // Show generic error toast for other errors
+        if (window.showToast) {
+          window.showToast('An error occurred while processing your valuation. Please try again.', 'error');
+        }
+      }
     } finally {
       setLoadingValuation(false);
     }
@@ -284,6 +310,9 @@ const MakeModelFlow = () => {
    * Handle Vehicle Condition form submission
    */
   const handleVehicleConditionSubmit = useCallback(async (data) => {
+    // Clear ZIP code error when submitting
+    setZipCodeError(null);
+    
     // Check if additional questions needed
     if (
       data.runsAndDrives === 'No' ||
@@ -377,7 +406,17 @@ const MakeModelFlow = () => {
     );
 
     try {
-      const response = await createAppointment({
+      // Check if this is a reschedule
+      const existingAppointmentId = localStorage.getItem('existingAppointmentId');
+      const isReschedule = !!existingAppointmentId;
+      
+      console.log('🔄 [MakeModelFlow] Appointment confirmation:', {
+        existingAppointmentId,
+        isReschedule,
+        appointmentData
+      });
+      
+      const appointmentPayload = {
         customerVehicleId: vehicleData.customerVehicleId,
         branchId: appointmentData.locationId,
         date: appointmentData.date,
@@ -392,9 +431,15 @@ const MakeModelFlow = () => {
         model: vehicleData.model,
         visitId: vehicleData.vid,
         otpCode: appointmentData.otpCode,
-      });
-
+      };
       
+      
+      
+      
+      // Use reschedule or create appointment based on context
+      const response = isReschedule 
+        ? await rescheduleAppointment(existingAppointmentId, appointmentPayload)
+        : await createAppointment(appointmentPayload);
 
       // Check if response indicates success
       // Backend might return { success: true } or { isValid: true } or just true
@@ -409,9 +454,13 @@ const MakeModelFlow = () => {
         updateVehicleData({ ...vehicleData, branchInfo: branchSelect });
         updateAppointmentInfo(appointmentData);
         
+        // Clear the existing appointment ID if it was a reschedule
+        localStorage.removeItem('existingAppointmentId');
+        
         // Show success message
         if (window.showToast) {
-          window.showToast('Appointment confirmed successfully!', 'success');
+          const message = isReschedule ? 'Appointment rescheduled successfully!' : 'Appointment confirmed successfully!';
+          window.showToast(message, 'success');
         }
         
         navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
@@ -428,23 +477,100 @@ const MakeModelFlow = () => {
         return false; // Indicate failure
       }
     } catch (error) {
-      // Error during appointment creation - stay on current page
       console.error('Error creating appointment:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create appointment. Please try again.';
       
-      if (window.showToast) {
-        window.showToast(errorMessage, 'error');
+      // Check if it's an OTP validation error (400 or specific error message)
+      const isOTPError = error.response?.status === 400 || 
+                        error.response?.data?.message?.toLowerCase().includes('otp') ||
+                        error.response?.data?.message?.toLowerCase().includes('code') ||
+                        error.response?.data?.message?.toLowerCase().includes('invalid');
+      
+      if (isOTPError) {
+        // OTP error - show error in modal
+        if (window.showToast) {
+          window.showToast('The OTP you entered is invalid or has expired. Please try again.', 'error');
+        }
+        return false; // Show error in OTP modal
+      } else {
+        // Server error (500) or other error - show generic error and close modal
+        if (window.showToast) {
+          window.showToast('An error occurred while booking your appointment. Please try again.', 'error');
+        }
+        return true; // Close modal (don't show OTP error)
       }
-      
-      return false; // Indicate failure
     }
   }, [branches.branchesData, vehicleData, updateVehicleData, updateAppointmentInfo, navigate, customerJourneyId]);
 
   /**
+   * Handle search by ZIP code
+   */
+  const handleSearchByZip = useCallback(async (zipCode, setError) => {
+    if (!zipCode || zipCode.length !== 5) {
+      console.warn('Invalid ZIP code:', zipCode);
+      if (setError) {
+        setError('Please enter a valid 5-digit ZIP code');
+      }
+      return { success: false };
+    }
+
+    setLoadingValuation(true);
+    
+    try {
+      const customerVehicleId = vehicleData?.customerVehicleId || 
+                               customerJourneyData?.customerVehicleId ||
+                               localStorage.getItem('customerVehicleId');
+
+      if (!customerVehicleId) {
+        console.error('No customer vehicle ID available');
+        setLoadingValuation(false);
+        if (setError) {
+          setError('Unable to search branches. Please complete the previous steps.');
+        }
+        return { success: false };
+      }
+
+      // Fetch branches for the new ZIP code (validateOnly = true to not trigger navigation)
+      const result = await branches.fetchBranches(zipCode, customerVehicleId, true);
+      
+      if (result && result.branches && result.branches.length > 0) {
+        // Only update ZIP code if branches were found
+        updateVehicleData({ ...vehicleData, zipCode });
+        updateUserInfo({ ...userInfo, zipCode });
+        localStorage.setItem('zipCode', zipCode);
+        
+        if (window.showToast) {
+          window.showToast(`Found ${result.branches.length} location(s) near ${zipCode}`, 'success');
+        }
+        setLoadingValuation(false);
+        return { success: true };
+      } else {
+        // No branches found - show error
+        setLoadingValuation(false);
+        if (setError) {
+          setError('Please enter the ZIP code closest to where you intend to sell the vehicle');
+        }
+        return { success: false };
+      }
+    } catch (error) {
+      console.error('Error searching by ZIP:', error);
+      setLoadingValuation(false);
+      if (setError) {
+        setError('Please enter the ZIP code closest to where you intend to sell the vehicle');
+      }
+      return { success: false };
+    }
+  }, [vehicleData, customerJourneyData, branches, updateVehicleData, updateUserInfo, userInfo]);
+
+  /**
    * Handle book appointment from calendar
    */
-  const handleBookAppointment = useCallback((appointmentData) => {
-    if (!appointmentData.receiveSMS) return;
+  const handleBookAppointment = useCallback(async (appointmentData) => {
+    
+    
+    if (!appointmentData.receiveSMS) {
+      
+      return;
+    }
 
     const dateObj = new Date(appointmentData.date);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -461,13 +587,38 @@ const MakeModelFlow = () => {
         firstName: appointmentData.firstName,
         lastName: appointmentData.lastName,
         telephone: appointmentData.telephone,
+        addressLine1: appointmentData.address1 || null,
+        addressLine2: appointmentData.address2 || null,
       },
       receiveSMS: appointmentData.receiveSMS,
     };
 
-    setPendingAppointmentData(slotData);
-    setShowOTPModal(true);
-  }, []);
+    // Update optionalPhoneNumber BEFORE showing OTP modal
+    try {
+      const phoneNumber = formatPhone(appointmentData.telephone);
+      
+      
+      
+      
+      const updateResult = await UpdateCustomerJourney(
+        {
+          optionalPhoneNumber: phoneNumber,
+        },
+        customerJourneyId
+      );
+      
+      
+      
+      // Only show OTP modal if update was successful
+      setPendingAppointmentData(slotData);
+      setShowOTPModal(true);
+    } catch (error) {
+      console.error('❌ Error updating phone number:', error);
+      if (window.showToast) {
+        window.showToast('An error occurred while processing your request. Please try again.', 'error');
+      }
+    }
+  }, [customerJourneyId]);
 
   // Step 1: Show ValuationTabs
   if (step === 1) {
@@ -543,6 +694,7 @@ const MakeModelFlow = () => {
                 userInfo={userInfo}
                 onSubmit={handleVehicleConditionSubmit}
                 loading={loadingValuation}
+                zipCodeError={zipCodeError}
               />
             )}
 
@@ -579,9 +731,10 @@ const MakeModelFlow = () => {
                 isModalOpen={isModalOpen}
                 showOTPModal={showOTPModal}
                 pendingAppointmentData={pendingAppointmentData}
+                customerJourneyId={customerJourneyId}
                 onSlotClick={handleSlotClick}
                 onAppointmentConfirm={handleAppointmentConfirm}
-                onSearchByZip={() => {}}
+                onSearchByZip={handleSearchByZip}
                 onBookAppointment={handleBookAppointment}
                 onModalClose={() => {
                   setIsModalOpen(false);
@@ -605,9 +758,14 @@ const MakeModelFlow = () => {
           {step !== 4 && (
             <div>
               <VehiclePreview
-                vehicle={vehicleData}
+                vehicle={{
+                  ...(customerJourneyData || vehicleData),
+                  // Preserve plate info from vehicleData if not in customerJourneyData
+                  plateNumber: customerJourneyData?.plateNumber || vehicleData?.plateNumber,
+                  plateState: customerJourneyData?.plateState || vehicleData?.plateState,
+                }}
                 loading={vehicleSeries.loading}
-                imageUrl={vehicleSeries.imageUrl}
+                imageUrl={customerJourneyData?.vehicleImageUrl || vehicleSeries.imageUrl}
               />
             </div>
           )}

@@ -16,6 +16,7 @@ import HomePage from "./pages/HomePage";
 import LicensePlateFlow from "./pages/LicensePlateFlow";
 import MakeModelFlow from "./pages/MakeModelFlow";
 import VINFlow from "./pages/VINFlow";
+import ManageAppointment from "./pages/ManageAppointment";
 import { AppProvider } from "./context/AppContext";
 
 function App() {
@@ -27,6 +28,9 @@ function App() {
             <Layout>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/home/welcome/:id" element={<HomePage />} />
+                <Route path="/manage-appointment/:id" element={<ManageAppointment />} />
+                <Route path="/updateappointment" element={<ManageAppointment />} />
                 <Route path="/sell-by-vin" element={<VINFlow />} />
                 <Route path="/valuation/:uid" element={<MakeModelFlow />} />
                 <Route path="/sell-by-make-model" element={<Navigate to="/valuation" replace />} />

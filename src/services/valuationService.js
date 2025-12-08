@@ -127,15 +127,22 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
         optionalPhoneNumber: data?.phone == "" ? null : data?.phone,
       };
     }
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.post(`/api/Valuation`, valuationVehicle, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/Valuation`, valuationVehicle);
     return response.data;
   } catch (error) {
     console.error('Save valuation vehicle error:', error);
-    if (retries === 0) return null;
+    
+    // Check if it's a 500 or 404 error - don't retry, throw immediately
+    const status = error.response?.status;
+    if (status === 500 || status === 404) {
+      throw error; // Throw error to be caught by caller
+    }
+    
+    // For other errors, retry
+    if (retries === 0) {
+      throw error; // Throw error after all retries exhausted
+    }
     return saveValuationVehicle(valuationVehicle, retries - 1);
   }
 };
@@ -143,14 +150,11 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
 
 export const getValuationVehicle = async (id, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`/api/Valuation/${id.toString()}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/Valuation/${id.toString()}`);
     return response.data.sort();
   } catch (error) {
-    console.error('Get models error:', error);
+    console.error('Get valuation error:', error);
     if (retries === 0) return [];
     return getValuationVehicle(id, retries - 1);
   }

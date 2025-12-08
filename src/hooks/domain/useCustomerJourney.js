@@ -108,7 +108,7 @@ export function useCustomerJourney(journeyId) {
 
     try {
       const payload = {
-        mileage: parseInt(data.odometer) || 0,
+        mileage: parseInt(data.odometer?.toString().replace(/,/g, '') || '0'),
         zipCode: data.zipCode,
         email: data.email,
         isFinancedOrLeased: data.hasClearTitle === 'Yes',

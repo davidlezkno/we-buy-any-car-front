@@ -41,6 +41,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.3 }}
         className={`card ${isStep2 ? "block lg:block" : "hidden lg:block"}`}
+        style={{ maxWidth: "460px" }}
       >
         {/* Header: Improved spacing */}
         <div className="mb-3">
@@ -53,7 +54,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
         </div>
 
         {/* Vehicle Image: Improved design with rounded borders */}
-        <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden relative shadow-lg">
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden relative shadow-lg flex items-center justify-center mx-auto">
           {imageLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="spinner border-primary-600 border-t-transparent" />
@@ -63,7 +64,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
               id="vehicle-image"
               src={imageToShow}
               alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-              className="w-full h-full object-cover"
+              className="max-w-full max-h-full object-contain"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
@@ -74,9 +75,7 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
               }}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Car className="w-20 h-20 text-gray-300" />
-            </div>
+            <Car className="w-20 h-20 text-gray-300" />
           )}
 
             
@@ -96,6 +95,22 @@ const VehiclePreview = ({ vehicle, loading = true, imageUrl = null }) => {
             <p className="font-mono text-sm md:text-base font-bold text-gray-900 break-all bg-gray-50 px-4 py-2 rounded-xl">
               {vehicle.vin}
             </p>
+          </div>
+        )}
+
+        {/* License Plate Display */}
+        {vehicle.plateNumber && vehicle.plateState && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 mb-2 font-medium">License Plate</p>
+            <div className="flex items-center justify-center gap-3 bg-gray-50 px-4 py-3 rounded-xl">
+              <p className="font-mono text-sm md:text-base font-bold text-gray-900">
+                {vehicle.plateNumber}
+              </p>
+              <span className="text-gray-400">•</span>
+              <p className="text-sm md:text-base font-semibold text-gray-700">
+                {vehicle.plateState}
+              </p>
+            </div>
           </div>
         )}
       </motion.div>

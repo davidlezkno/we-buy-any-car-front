@@ -100,32 +100,44 @@ export function useBranches() {
     try {
       const branchesResponse = await getBranchesByCustomerVehicle(zipCode, customerVehicleId);
       
-      // Transform physical branches
-      const transformedBranches = branchesResponse.physical.map(branch => 
-        transformBranchData(branch, 'branch')
-      );
+      // Build transformed branches array
+      const transformedBranches = [];
 
-      // Add mobile branch if exists
-      if (branchesResponse?.mobile?.branchId) {
-        transformedBranches.unshift(
+      // Add mobile branch if exists (check for null explicitly)
+      if (branchesResponse?.mobile && branchesResponse.mobile !== null && branchesResponse.mobile.branchId) {
+        transformedBranches.push(
           transformBranchData(branchesResponse.mobile, 'home')
         );
       }
 
-      setBranchesData(transformedBranches);
-      setBranchesHours(branchesResponse);
-      sessionStorage.setItem('branchesHours', JSON.stringify(branchesResponse));
-
-      // Fetch first branch details
-      if (transformedBranches.length > 0) {
-        const firstBranchDetails = await getBrancheById(transformedBranches[0].branchId);
-        setFirstBranch(firstBranchDetails);
+      // Transform and add physical branches
+      if (branchesResponse?.physical && Array.isArray(branchesResponse.physical)) {
+        const physicalBranches = branchesResponse.physical.map(branch => 
+          transformBranchData(branch, 'branch')
+        );
+        transformedBranches.push(...physicalBranches);
       }
 
-      return { branches: transformedBranches, shouldNavigate: !validateOnly };
+      // Only update state if branches were found
+      if (transformedBranches.length > 0) {
+        setBranchesData(transformedBranches);
+        setBranchesHours(branchesResponse);
+        sessionStorage.setItem('branchesHours', JSON.stringify(branchesResponse));
+
+        // Fetch first branch details
+        const firstBranchDetails = await getBrancheById(transformedBranches[0].branchId);
+        setFirstBranch(firstBranchDetails);
+        
+        return { branches: transformedBranches, shouldNavigate: !validateOnly };
+      } else {
+        // No branches found - don't update state, return empty result
+        setError('No branches found for this ZIP code');
+        return { branches: [], shouldNavigate: false };
+      }
     } catch (err) {
       console.error('Error getting branches:', err);
       setError(err.message || 'Failed to fetch branches');
+      // Don't clear existing branches on error
       return null;
     } finally {
       setLoading(false);

@@ -115,23 +115,29 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
         // Call onVerify and wait for result
         const result = await onVerify(code);
         
-        // If verification was successful (result === true), close modal
+        // If verification was successful (result === true), close modal immediately
+        // Don't update any state - just close to avoid showing error message
         if (result === true) {
-          setIsLoading(false);
-          onClose(); // Close modal on success
+          onClose(); // Close modal on success - state will be reset by useEffect
+          return; // Exit immediately without updating any state
         } else {
-          // Verification failed - show error and stay on modal
-          setError("Invalid code. Please try again.");
-          setIsLoading(false);
-          // Clear OTP inputs to allow retry
-          setOtp(["", "", "", "", "", ""]);
-          inputRefs.current[0]?.focus();
+          setTimeout(() => {
+            // Only reach here if verification failed
+            // Verification failed - show error and stay on modal
+            setIsLoading(false);
+            setError("Invalid code. Please try again.");
+            // Clear OTP inputs to allow retry
+            setOtp(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+          }, 5000)
         }
+      } else {
+        setIsLoading(false);
       }
     } catch (err) {
       // Error during verification - show error and stay on modal
-      setError(err.message || "Invalid code. Please try again.");
       setIsLoading(false);
+      setError(err.message || "Invalid code. Please try again.");
       // Clear OTP inputs to allow retry
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();

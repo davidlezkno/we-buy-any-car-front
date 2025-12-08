@@ -131,7 +131,6 @@ const ReviewSlider = () => {
                   <div className="flex items-center gap-2">
                     {[...Array(5)].map((_, starIndex) => (
                       <Star
-                        // eslint-disable-next-line react/no-array-index-key
                         key={`${review.header}-${starIndex}`}
                         className="w-4 h-4"
                         style={{ fill: "#20B24D", color: "#20B24D" }}

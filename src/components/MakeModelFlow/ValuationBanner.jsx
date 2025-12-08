@@ -3,11 +3,44 @@
  * Implements Single Responsibility Principle (SRP)
  */
 
+import { useEffect } from 'react';
+
 /**
  * Valuation banner component
  * @param {Object} props - Component props
  */
 const ValuationBanner = ({ valuation, loading, isModalOpen, trustpilotWidgetRef }) => {
+  // Initialize Trustpilot widget
+  useEffect(() => {
+    if (!trustpilotWidgetRef?.current) return;
+
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    const initTrustpilot = () => {
+      attempts++;
+      
+      if (window.Trustpilot && trustpilotWidgetRef.current) {
+        try {
+          if (typeof window.Trustpilot.loadFromElement === 'function') {
+            window.Trustpilot.loadFromElement(trustpilotWidgetRef.current, true);
+          } else if (typeof window.Trustpilot.load === 'function') {
+            window.Trustpilot.load();
+          }
+        } catch (e) {
+          console.error('Error initializing Trustpilot widget:', e);
+        }
+      } else if (attempts < maxAttempts) {
+        setTimeout(initTrustpilot, 100);
+      }
+    };
+
+    // Start initialization after a short delay
+    const timer = setTimeout(initTrustpilot, 300);
+
+    return () => clearTimeout(timer);
+  }, [trustpilotWidgetRef]);
+
   return (
     <div
       className="rounded-3xl p-5 md:p-8 lg:p-12 transition-all duration-500 relative overflow-visible md:overflow-visible w-full"

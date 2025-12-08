@@ -66,15 +66,11 @@ export const findNearbyStores = async (zipCode, retries = 2) => {
 
 export const createAppointment = async (appointmentData, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`/api/Appointment/book`, appointmentData, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/Appointment/book`, appointmentData);
     return response.data;
   } catch (error) {
-    console.error('Get makes error:', error);
+    console.error('Create appointment error:', error);
     if (retries === 0) throw error;
     return createAppointment(appointmentData, retries - 1);
   }
@@ -83,50 +79,50 @@ export const createAppointment = async (appointmentData, retries = 2) => {
 
 export const cancelAppointment = async (customerVehicleId, phoneNumber , retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`/api/Appointment/book`, {customerVehicleId, phoneNumber}, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/appointment/cancel/${customerVehicleId}/${phoneNumber}`);
     return response.data;
   } catch (error) {
-    console.error('Get makes error:', error);
+    console.error('Cancel appointment error:', error);
     if (retries === 0) throw error;
     return cancelAppointment(customerVehicleId, phoneNumber, retries - 1);
   }
 }
 
-export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 2) => {
+export const rescheduleAppointment = async (existingAppointmentId, appointmentData, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber }, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/Appointment/${existingAppointmentId}/reschedule`, appointmentData);
     return response.data;
   } catch (error) {
-    console.error('Get makes error:', error);
+    console.error('Reschedule appointment error:', error);
     if (retries === 0) throw error;
-    return createOnTime(customerVehicleId, branchId, targetPhoneNumber = "", retries - 1);
+    return rescheduleAppointment(existingAppointmentId, appointmentData, retries - 1);
+  }
+}
+
+export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 2) => {
+  try {
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber });
+    return response.data;
+  } catch (error) {
+    console.error('Create OTP error:', error);
+    if (retries === 0) throw error;
+    return createOnTime(customerVehicleId, branchId, targetPhoneNumber, retries - 1);
   }
 };
 
 
 export const sendSmS  = async (customerVehicleId, recipient, message = "", retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`/api/Sms/send`, { customerVehicleId, recipient, message }, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/Sms/send`, { customerVehicleId, recipient, message });
     return response.data;
   } catch (error) {
-    console.error('Get makes error:', error);
+    console.error('Send SMS error:', error);
     if (retries === 0) throw error;
-    return sendSmS(customerVehicleId, recipient, message = "", retries - 1);
+    return sendSmS(customerVehicleId, recipient, message, retries - 1);
   }
 };
 

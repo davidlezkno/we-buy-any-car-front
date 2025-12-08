@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Input from "./Input";
 import BranchInfoModal from "./BranchInfoModal";
+import ContactInfoForm from "./ContactInfoForm";
 import { convertTo12Hour, getDayName, getGoogleMapsEmbedUrl, getNext12Days, getPeriod, isMobile, isMobileDevice } from "../../utils/helpers";
 import { getBrancheById, getBranchesByCustomerVehicle } from "../../services/branchService";
 import { weekDays } from "../../utils/model";
@@ -28,18 +29,20 @@ const CalendarScheduler = ({
   const [dayOffset, setDayOffset] = useState(0); // Start from today (offset 0)
   const MAX_DAYS_AHEAD = 10; // Maximum days to show in the future
   const [zipCode, setZipCode] = useState("");
+  const [zipCodeError, setZipCodeError] = useState("");
   const [branchesData, setBranchesData] = useState(branches);
   const [locations, setLocations] = useState([]);
 
   // Update branchesData when branches prop changes
-  // useEffect(() => {
-  //   if (branches && branches.length > 0) {
-  //     setBranchesData(branches);
-  //   }
-  // }, [branches]);
+  useEffect(() => {
+    if (branches) {
+      setBranchesData(branches);
+    }
+  }, [branches]);
 
   useEffect(() => {
-    if(branchesData.length > 0 ){
+    // Always update locations when branchesData changes, even if empty
+    if(branchesData && branchesData.length > 0 ){
       const locs = branchesData.map(branch => {
         let obj = {};
         for(let i = 0; i < branch.operationHours.length; i++){
@@ -69,6 +72,9 @@ const CalendarScheduler = ({
       });
 
       setLocations(locs);
+    } else {
+      // Clear locations if no branches
+      setLocations([]);
     }
 
     if (isMobileDevice()) {
@@ -78,9 +84,21 @@ const CalendarScheduler = ({
   }, [branchesData]);
 
 
-  const handleZipSearch = (e) => {
-    // localStorage.setItem("zipCode", zipCode);
-    // searchZip(zipCode);
+  const handleZipSearch = async (e) => {
+    e?.preventDefault(); // Prevenir recarga de página
+    setZipCodeError(""); // Clear previous errors
+    
+    if (!zipCode || zipCode.length !== 5) {
+      setZipCodeError("Please enter a valid 5-digit ZIP code");
+      return;
+    }
+    
+    if (searchZip) {
+      const result = await searchZip(zipCode, setZipCodeError);
+      if (result?.success) {
+        localStorage.setItem("zipCode", zipCode);
+      }
+    }
   };
   
  
@@ -178,7 +196,7 @@ const CalendarScheduler = ({
   };
 
   // Function to format phone number as (XXX) XXX XXXX
-  const formatPhoneNumber = (phone) => {
+  const formatPhoneNumber = useCallback((phone) => {
     const digits = getDigitsOnly(phone);
     // Limit to 10 digits
     const limitedDigits = digits.slice(0, 10);
@@ -189,7 +207,7 @@ const CalendarScheduler = ({
       return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3)}`;
     }
     return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)} ${limitedDigits.slice(6)}`;
-  };
+  });
 
   // Generate real time slots for branches (e.g., "4:00 PM")
   const generateBranchTimeSlots = () => {
@@ -282,7 +300,7 @@ const CalendarScheduler = ({
     if (selectedTime) {
       setSelectedTimeMobile(selectedTime);
     }
-  }, [selectedLocation?.locationId, selectedDate, selectedTime]);
+  }, [selectedLocation?.locationId, selectedDate, selectedTime, locations]);
 
   // Sync telephone from initialPhone prop
   useEffect(() => {
@@ -296,7 +314,7 @@ const CalendarScheduler = ({
         setTelephone(formatted);
       }
     }
-  }, [initialPhone]);
+  }, [formatPhoneNumber, initialPhone]);
 
   // Get available time slots for selected date
   const getAvailableTimesForDate = (locationId, dateFullDate) => {
@@ -420,7 +438,7 @@ const CalendarScheduler = ({
     // Desktop will handle clicks through the calendar view
     // Removed handleSlotClick call to prevent modal from opening in mobile
   };
-
+  
   return (
     <div
       className="space-y-0 md:space-y-6 w-full"
@@ -590,173 +608,40 @@ const CalendarScheduler = ({
               </span>
             </div>
 
-            <div className="space-y-5">
-                  <div className="w-full">
-                    <label className="label hidden md:block" htmlFor="appointment-modal-first-name-input">
-                      First Name
-                    </label>
-                    <div className="relative group">
-                      <input
-                        className="input-field"
-                        placeholder="Enter First Name"
-                        id="appointment-modal-first-name-input"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                      />
-                      <div
-                        className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="w-full">
-                    <label className="label hidden md:block" htmlFor="appointment-modal-last-name-input">
-                      Last Name
-                    </label>
-                    <div className="relative group">
-                      <input
-                        className="input-field"
-                        placeholder="Enter Last Name"
-                        id="appointment-modal-last-name-input"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                      />
-                      <div
-                        className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="w-full">
-                    <label className="label hidden md:block" htmlFor="appointment-modal-telephone-input">
-                      Telephone
-                    </label>
-                    <div className="relative group">
-                      <input
-                        className="input-field"
-                        type="tel"
-                        inputMode="numeric"
-                        placeholder="Enter Telephone Number"
-                        id="appointment-modal-telephone-input"
-                        value={telephone}
-                        onChange={(e) => {
-                          const formatted = formatPhoneNumber(e.target.value);
-                          setTelephone(formatted);
-                        }}
-                      />
-                      <div
-                        className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 pt-2" ref={smsCheckboxBranchContainerRef}>
-                    <input
-                      type="checkbox"
-                      id="appointment-modal-receive-sms-checkbox"
-                      ref={smsCheckboxBranchRef}
-                      className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${
-                        smsError ? "border-red-500 border-2 ring-2 ring-red-300 shadow-lg" : ""
-                      }`}
-                      style={smsError ? { 
-                        borderColor: "#ef4444", 
-                        borderWidth: "2px",
-                        boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1)"
-                      } : {}}
-                      checked={receiveSMS}
-                      onChange={(e) => {
-                        setReceiveSMS(e.target.checked);
-                        if (e.target.checked) {
-                          setSmsError("");
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor="appointment-modal-receive-sms-checkbox"
-                      className="text-sm text-gray-700 cursor-pointer"
-                    >
-                      Receive text (SMS) messages about this appointment**
-                    </label>
-                  </div>
-                  {smsError && (
-                    <span className="text-red-600 text-sm block mt-2">
-                      {smsError}
-                    </span>
-                  )}
-
-                  {/* Book Appointment Button */}
-                  <div className="pt-0 md:pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Validate SMS opt-in is required
-                        if (!receiveSMS) {
-                          setSmsError("You must receive a verification code by text (SMS) message to complete your appointment booking online. If you prefer not to receive the code by SMS, please call (484) 519-2538 to schedule your appointment.");
-                          // Focus and scroll to the checkbox when error is shown
-                          setTimeout(() => {
-                            // First, scroll the container into view
-                            if (smsCheckboxBranchContainerRef.current) {
-                              smsCheckboxBranchContainerRef.current.scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'center' 
-                              });
-                            }
-                            // Then try to focus the checkbox
-                            if (smsCheckboxBranchRef.current) {
-                              // Try to focus the checkbox directly
-                              smsCheckboxBranchRef.current.focus();
-                              // If checkbox doesn't receive focus, try the label
-                              setTimeout(() => {
-                                if (document.activeElement !== smsCheckboxBranchRef.current) {
-                                  const label = document.querySelector('label[for="appointment-modal-receive-sms-checkbox"]');
-                                  if (label) {
-                                    label.setAttribute('tabIndex', '-1');
-                                    label.focus();
-                                  }
-                                }
-                              }, 50);
-                            }
-                          }, 150);
-                          return;
-                        }
-                        
-                        if (onBookAppointment) {
-                          const location = locations.find(
-                            (loc) => loc.id === selectedLocationMobile,
-                          );
-                          onBookAppointment({
-                            locationId: selectedLocationMobile,
-                            location: location?.name || "",
-                            phone: location?.phone || "",
-                            date: selectedDateMobile,
-                            time: selectedTimeMobile || "",
-                            firstName,
-                            lastName,
-                            telephone,
-                            receiveSMS,
-                          });
-                        }
-                      }}
-                      disabled={!firstName || !lastName || !telephone || !selectedTimeMobile}
-                      className="w-full bg-black text-white font-bold py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
-                    >
-                      BOOK APPOINTMENT
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  </div>
-            </div>
+            <ContactInfoForm
+              ref={{ smsCheckboxRef: smsCheckboxBranchRef, smsCheckboxContainerRef: smsCheckboxBranchContainerRef }}
+              firstName={firstName}
+              lastName={lastName}
+              telephone={telephone}
+              receiveSMS={receiveSMS}
+              smsError={smsError}
+              onFirstNameChange={setFirstName}
+              onLastNameChange={setLastName}
+              onTelephoneChange={(value) => setTelephone(formatPhoneNumber(value))}
+              onReceiveSMSChange={(checked, error) => {
+                setReceiveSMS(checked);
+                setSmsError(error);
+              }}
+              onSubmit={() => {
+                if (onBookAppointment) {
+                  const location = locations.find((loc) => loc.id === selectedLocationMobile);
+                  onBookAppointment({
+                    locationId: selectedLocationMobile,
+                    location: location?.name || "",
+                    phone: location?.phone || "",
+                    date: selectedDateMobile,
+                    time: selectedTimeMobile || "",
+                    firstName,
+                    lastName,
+                    telephone,
+                    receiveSMS,
+                  });
+                }
+              }}
+              disabled={!firstName || !lastName || !telephone || !selectedTimeMobile}
+              submitButtonText="BOOK APPOINTMENT"
+              checkboxId="appointment-modal-receive-sms-checkbox"
+            />
           </>
         ) : (
           <>
@@ -817,238 +702,52 @@ const CalendarScheduler = ({
               </span>
             </div>
 
-            <div className="space-y-5">
-              <div className="w-full">
-                <label className="label hidden md:block" htmlFor="appointment-modal-first-name-input">
-                  First Name
-                </label>
-                <div className="relative group">
-                  <input
-                    className="input-field"
-                    placeholder="Enter First Name"
-                    id="appointment-modal-first-name-input"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                  <div
-                    className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="w-full">
-                <label className="label hidden md:block" htmlFor="appointment-modal-last-name-input">
-                  Last Name
-                </label>
-                <div className="relative group">
-                  <input
-                    className="input-field"
-                    placeholder="Enter Last Name"
-                    id="appointment-modal-last-name-input"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                  <div
-                    className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="w-full">
-                <label className="label hidden md:block" htmlFor="appointment-modal-telephone-input">
-                  Telephone
-                </label>
-                <div className="relative group">
-                  <input
-                    className="input-field"
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="Enter Telephone Number"
-                    id="appointment-modal-telephone-input"
-                    value={telephone}
-                    onChange={(e) => {
-                      const formatted = formatPhoneNumber(e.target.value);
-                      setTelephone(formatted);
-                    }}
-                  />
-                  <div
-                    className="absolute inset-0 rounded-2xl pointer-events-none transition-opacity duration-500 opacity-0 group-focus-within:opacity-100 animate-shimmer"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.1), transparent) 0% 0% / 200% 100%",
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Address Fields for Home appointments */}
-              <div className="w-full">
-                <input
-                  className="textbox mobile-address input-field"
-                  data-val="true"
-                  data-val-required="Address is required."
-                  id="Address1"
-                  maxLength={50}
-                  name="Address1"
-                  placeholder="Address Line 1"
-                  type="text"
-                  value={address1}
-                  onChange={(e) => setAddress1(e.target.value)}
-                  style={{ display: "inline-block", width: "100%" }}
-                />
-              </div>
-
-              <div className="w-full">
-                <input
-                  className="textbox mobile-address input-field"
-                  id="Address2"
-                  maxLength={50}
-                  name="Address2"
-                  placeholder="Address Line 2 (Optional)"
-                  type="text"
-                  value={address2}
-                  onChange={(e) => setAddress2(e.target.value)}
-                  style={{ display: "inline-block", width: "100%" }}
-                />
-              </div>
-
-              <div className="city-state-zip-container flex gap-2">
-                <div className="flex-1">
-                  <input
-                    className="textbox mobile-address input-field"
-                    data-val="true"
-                    data-val-required="City is required."
-                    id="City"
-                    maxLength={50}
-                    name="City"
-                    placeholder="City"
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    style={{ display: "inline-block", width: "100%" }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <input
-                    id="state-zip"
-                    type="text"
-                    value={stateZip}
-                    className="textbox mobile-address input-field"
-                    readOnly
-                    tabIndex={-1}
-                    style={{ display: "inline-block", width: "100%", backgroundColor: "#f3f4f6", cursor: "not-allowed" }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 pt-2" ref={smsCheckboxContainerRef}>
-                <input
-                  type="checkbox"
-                  id="appointment-modal-receive-sms-checkbox-home"
-                  ref={smsCheckboxRef}
-                  className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${
-                    smsError ? "border-red-500 border-2 ring-2 ring-red-300 shadow-lg" : ""
-                  }`}
-                  style={smsError ? { 
-                    borderColor: "#ef4444", 
-                    borderWidth: "2px",
-                    boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.1)"
-                  } : {}}
-                  checked={receiveSMS}
-                  onChange={(e) => {
-                    setReceiveSMS(e.target.checked);
-                    if (e.target.checked) {
-                      setSmsError("");
-                    }
-                  }}
-                />
-                <label
-                  htmlFor="appointment-modal-receive-sms-checkbox-home"
-                  className="text-sm text-gray-700 cursor-pointer"
-                >
-                  Receive text (SMS) messages about this appointment**
-                </label>
-              </div>
-              {smsError && (
-                <span className="text-red-600 text-sm block mt-2">
-                  {smsError}
-                </span>
-              )}
-
-              {/* Book Appointment Button for Home */}
-              <div className="pt-0 md:pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Validate SMS opt-in is required
-                    if (!receiveSMS) {
-                      setSmsError("You must receive a verification code by text (SMS) message to complete your appointment booking online. If you prefer not to receive the code by SMS, please call (484) 519-2538 to schedule your appointment.");
-                      // Focus and scroll to the checkbox when error is shown
-                      setTimeout(() => {
-                        // First, scroll the container into view
-                        if (smsCheckboxContainerRef.current) {
-                          smsCheckboxContainerRef.current.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center' 
-                          });
-                        }
-                        // Then try to focus the checkbox
-                        if (smsCheckboxRef.current) {
-                          // Try to focus the checkbox directly
-                          smsCheckboxRef.current.focus();
-                          // If checkbox doesn't receive focus, try the label
-                          setTimeout(() => {
-                            if (document.activeElement !== smsCheckboxRef.current) {
-                              const label = document.querySelector('label[for="appointment-modal-receive-sms-checkbox-home"]');
-                              if (label) {
-                                label.setAttribute('tabIndex', '-1');
-                                label.focus();
-                              }
-                            }
-                          }, 50);
-                        }
-                      }, 150);
-                      return;
-                    }
-                    
-                    
-                    if (onBookAppointment) {
-                      const location = locations.find(
-                        (loc) => loc.id === selectedLocationMobile,
-                      );
-                      onBookAppointment({
-                        locationId: selectedLocationMobile,
-                        location: location?.name || "",
-                        phone: location?.phone || "",
-                        date: selectedDateMobile,
-                        time: selectedTimeMobile,
-                        firstName,
-                        lastName,
-                        telephone,
-                        receiveSMS,
-                        address1,
-                        address2,
-                        city,
-                        stateZip,
-                      });
-                    }
-                  }}
-                  disabled={!firstName || !lastName || !telephone || (!selectedTimeMobile && !isMobile()) || !address1 || !city || !receiveSMS}
-                  className="w-full bg-black text-white font-bold py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
-                >
-                  BOOK APPOINTMENToii
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+            <ContactInfoForm
+              ref={{ smsCheckboxRef, smsCheckboxContainerRef }}
+              firstName={firstName}
+              lastName={lastName}
+              telephone={telephone}
+              receiveSMS={receiveSMS}
+              smsError={smsError}
+              onFirstNameChange={setFirstName}
+              onLastNameChange={setLastName}
+              onTelephoneChange={(value) => setTelephone(formatPhoneNumber(value))}
+              onReceiveSMSChange={(checked, error) => {
+                setReceiveSMS(checked);
+                setSmsError(error);
+              }}
+              onSubmit={() => {
+                if (onBookAppointment) {
+                  const location = locations.find((loc) => loc.id === selectedLocationMobile);
+                  onBookAppointment({
+                    locationId: selectedLocationMobile,
+                    location: location?.name || "",
+                    phone: location?.phone || "",
+                    date: selectedDateMobile,
+                    time: selectedTimeMobile,
+                    firstName,
+                    lastName,
+                    telephone,
+                    receiveSMS,
+                    address1,
+                    address2,
+                    city,
+                    stateZip,
+                  });
+                }
+              }}
+              disabled={!firstName || !lastName || !telephone || (!selectedTimeMobile && !isMobile()) || !address1 || !city}
+              submitButtonText="BOOK APPOINTMENT"
+              showAddressFields={true}
+              address1={address1}
+              address2={address2}
+              city={city}
+              stateZip={stateZip}
+              onAddress1Change={setAddress1}
+              onAddress2Change={setAddress2}
+              onCityChange={setCity}
+              checkboxId="appointment-modal-receive-sms-checkbox-home"
+            />
           </>
         )}
       </div>
@@ -1136,9 +835,7 @@ const CalendarScheduler = ({
                       )}
                       <div>
                         <div className="font-bold text-gray-900 text-sm md:text-base">
-                          {location.type === "home"
-                            ? location.name
-                            : location.name}
+                          {location.type === "home" ? 'We Come to You' : location.name}
                           {location.location && ` ${location.location}`}
                           {location.distance && ` ${location.distance}`}
                         </div>
@@ -1249,27 +946,40 @@ const CalendarScheduler = ({
             <span className="text-white font-medium text-base md:text-lg whitespace-nowrap w-full md:w-auto text-center md:text-left">
               Looking for a different branch?
             </span>
-            <div className="flex flex-1 w-full md:w-auto gap-3">
-              <input
-                type="text"
-                placeholder="Enter ZIP Code"
-                maxLength={5}
-                pattern="[0-9]{5}"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value.replace(/\D/g, ""))}
-                className="flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all min-w-0"
-                style={{
-                  background: "rgba(255, 255, 255, 0.95)",
-                  border: "1px solid rgba(255, 255, 255, 0.3)",
-                }}
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                Search by ZIP
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="flex flex-col flex-1 w-full md:w-auto gap-1">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Enter ZIP Code"
+                  maxLength={5}
+                  pattern="[0-9]{5}"
+                  value={zipCode}
+                  onChange={(e) => {
+                    setZipCode(e.target.value.replace(/\D/g, ""));
+                    setZipCodeError(""); // Clear error when user types
+                  }}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-0 ${
+                    zipCodeError 
+                      ? 'border-2 border-red-500 focus:ring-red-500' 
+                      : 'border border-white/30 focus:ring-white/50'
+                  }`}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.95)",
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  Search by ZIP
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+              {zipCodeError && (
+                <span className="text-red-500 text-sm font-medium  px-3 py-1 rounded">
+                  {zipCodeError}
+                </span>
+              )}
             </div>
           </form>
 

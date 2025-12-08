@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, ArrowLeft, Clock } from "lucide-react";
 import Button from "./Button";
 import Input from "./Input";
 import OTPModal from "./OTPModal";
-import { random3Digits } from "../../utils/helpers";
+import { random3Digits, formatPhone } from "../../utils/helpers";
 import { createOnTime, sendSmS } from "../../services/appointmentService";
+import { UpdateCustomerJourney } from "../../services/vehicleService";
 
 const AppointmentModal = ({ 
   isOpen, 
@@ -15,7 +16,8 @@ const AppointmentModal = ({
   initialPhone = "", 
   initialReceiveSMS = false, 
   vehicleData, 
-  branchesHours }) => {
+  branchesHours,
+  customerJourneyId }) => {
 
   
   const [step, setStep] = useState(1); 
@@ -42,7 +44,7 @@ const AppointmentModal = ({
   };
 
   // Function to format phone number as (XXX) XXX XXXX
-  const formatPhoneNumber = (phone) => {
+  const formatPhoneNumber = useCallback((phone) => {
     const digits = getDigitsOnly(phone);
     // Limit to 10 digits
     const limitedDigits = digits.slice(0, 10);
@@ -53,7 +55,7 @@ const AppointmentModal = ({
       return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3)}`;
     }
     return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)} ${limitedDigits.slice(6)}`;
-  };
+  }, []);
 
   // Pre-fill telephone when modal opens with initialPhone
   // Auto-select receiveSMS checkbox if phone is valid (10 digits)
@@ -111,7 +113,7 @@ const AppointmentModal = ({
       });
       setAvailableTimes(dataHours[selectedSlot?.time] || []);
     }
-  }, [isOpen, initialPhone]);
+  }, [isOpen, initialPhone, branchesHours, formatPhoneNumber, selectedSlot?.time]);
 
   
   const handleTimeSelect = (time) => {
@@ -167,6 +169,40 @@ const AppointmentModal = ({
       
       if (vehicleData?.customerVehicleId && branchId) {
         try {
+          // FIRST: Update optionalPhoneNumber in vehicle-condition
+          const phoneNumber = formatPhone(formData.telephone);
+          console.log('📞 [AppointmentModal] Updating phone number:', phoneNumber);
+          console.log('🆔 [AppointmentModal] CustomerJourneyId:', customerJourneyId);
+          console.log('🚗 [AppointmentModal] VehicleData:', vehicleData);
+          
+          // Get stored data from localStorage as fallback
+          const storedData = JSON.parse(localStorage.getItem('dataVehicleCondition') || '{}');
+          
+          // Parse mileage and ensure it's a valid number between 1 and 9999999
+          const rawMileage = vehicleData?.odometer || storedData?.odometer || '0';
+          const parsedMileage = parseInt(String(rawMileage).replace(/,/g, ''), 10);
+          const validMileage = isNaN(parsedMileage) || parsedMileage < 1 ? 1 : Math.min(parsedMileage, 9999999);
+          
+          const updateData = {
+            optionalPhoneNumber: phoneNumber,
+            email: vehicleData?.email || storedData?.email || '',
+            mileage: validMileage,
+            zipCode: vehicleData?.zipCode || storedData?.zipCode || localStorage.getItem('zipCode') || '',
+            runsAndDrives: vehicleData?.runsAndDrives || storedData?.runsAndDrives || 'Yes',
+            hasIssues: vehicleData?.hasIssues || storedData?.hasIssues || 'No',
+            hasAccident: vehicleData?.hasAccident || storedData?.hasAccident || 'No',
+            hasClearTitle: vehicleData?.hasClearTitle || storedData?.hasClearTitle || 'Yes',
+          };
+          
+          console.log('📤 [AppointmentModal] Sending update data:', updateData);
+          
+          await UpdateCustomerJourney(updateData, customerJourneyId);
+          
+          
+          
+          
+          
+          // THEN: Create OTP and send SMS
           await createOnTime(
             vehicleData.customerVehicleId, 
             branchId, 
@@ -181,7 +217,7 @@ const AppointmentModal = ({
             Please use the following code to verify your appointment: ${random3Digits(6)}`
           );
         } catch (err) {
-          console.error('Error creating OTP or sending SMS:', err);
+          console.error('❌ [AppointmentModal] Error creating OTP or sending SMS:', err);
         }
       }
       

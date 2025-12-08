@@ -1,9 +1,12 @@
 /**
  * HTTP Client - Centralized Axios configuration
  * Implements Dependency Inversion Principle (DIP)
+ * 
+ * SEGURIDAD: Integrado con tokenManager para manejo seguro de autenticación
  */
 
 import axios from 'axios';
+import { getToken, clearToken } from './tokenManager';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
@@ -17,18 +20,21 @@ const httpClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Seguridad: Prevenir envío de credenciales a dominios no autorizados
+  withCredentials: false,
 });
 
 /**
  * Request interceptor for adding auth tokens, logging, etc.
+ * SEGURIDAD: Usa tokenManager en lugar de sessionStorage
  */
 httpClient.interceptors.request.use(
   (config) => {
-    // Add auth token if available
-    // const token = localStorage.getItem('auth_token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Agregar token de autenticación si está disponible
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -38,6 +44,7 @@ httpClient.interceptors.request.use(
 
 /**
  * Response interceptor for error handling
+ * SEGURIDAD: Limpia token en caso de 401 (no autorizado)
  */
 httpClient.interceptors.response.use(
   (response) => {
@@ -51,8 +58,11 @@ httpClient.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // Handle unauthorized
-          console.error('Unauthorized access');
+          // Handle unauthorized - Limpiar token inválido
+          console.error('Unauthorized access - Token inválido o expirado');
+          clearToken();
+          // Opcional: Redirigir a login si es necesario
+          // window.location.href = '/login';
           break;
         case 403:
           // Handle forbidden

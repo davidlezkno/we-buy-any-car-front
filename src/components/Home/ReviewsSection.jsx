@@ -75,7 +75,7 @@ const ReviewsSection = () => {
               <a
                 href="https://www.trustpilot.com/review/webuyanycarusa.com"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
               >
                 Trustpilot
               </a>
@@ -126,7 +126,7 @@ const ReviewsSection = () => {
               <a
                 href="https://www.trustpilot.com/review/webuyanycarusa.com"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
               >
                 Trustpilot
               </a>

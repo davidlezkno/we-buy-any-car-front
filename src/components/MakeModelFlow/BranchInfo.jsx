@@ -14,7 +14,7 @@ const BranchInfo = ({ branch }) => {
   const { branchLocation, distance } = branch;
 
   return (
-    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-4 md:mt-0">
+    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-6 md:mt-0" style={{marginTop:'0', borderRadius: '0'}}> 
       <div className="text-lg md:text-xl font-bold text-gray-900 mb-4">
         Your nearest branch is
         <br />
@@ -35,7 +35,6 @@ const BranchInfo = ({ branch }) => {
           className="text-primary-600 hover:text-primary-800 underline"
         >
           {branchLocation?.address1}
-          <br />
           <br />
           {branchLocation?.city}, {branchLocation?.state} {branchLocation?.zipCode}
         </a>

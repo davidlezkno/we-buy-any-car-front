@@ -30,6 +30,7 @@ const StepAppointment = ({
   showOTPModal,
   pendingAppointmentData,
   isSendingOTP,
+  customerJourneyId,
   onSlotClick,
   onAppointmentConfirm,
   onSearchByZip,
@@ -87,6 +88,7 @@ const StepAppointment = ({
         vehicleData={vehicleData}
         userInfo={userInfo}
         isModalOpen={isModalOpen}
+        customerJourneyId={customerJourneyId}
         onSlotClick={onSlotClick}
         onSearchByZip={onSearchByZip}
         onBookAppointment={onBookAppointment}
@@ -126,6 +128,7 @@ const CalendarSection = ({
   vehicleData,
   userInfo,
   isModalOpen,
+  customerJourneyId,
   onSlotClick,
   onSearchByZip,
   onBookAppointment,
@@ -139,8 +142,7 @@ const CalendarSection = ({
       backdropFilter: 'blur(40px)',
       WebkitBackdropFilter: 'blur(40px)',
       border: '1px solid rgba(255, 255, 255, 0.9)',
-      boxShadow:
-        '0 20px 60px 0 rgba(31, 38, 135, 0.2), 0 8px 24px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.95)',
+      borderRadius:'0px',
       maxWidth: '100%',
       boxSizing: 'border-box',
     }}
@@ -171,6 +173,7 @@ const CalendarSection = ({
         onClose={onModalClose}
         selectedSlot={selectedSlot}
         onConfirm={onAppointmentConfirm}
+        customerJourneyId={customerJourneyId}
         initialPhone={vehicleData?.phone || userInfo?.phone || ''}
         initialReceiveSMS={vehicleData?.receiveSMS || userInfo?.receiveSMS || false}
       />

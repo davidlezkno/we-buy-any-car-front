@@ -1,3 +1,5 @@
+@import './styles/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,8 +25,9 @@
 
   body {
     @apply text-gray-900 antialiased;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
+      "Univers",
       "Arial Rounded MT Bold",
       Arial,
       Tahoma,
@@ -43,7 +46,7 @@
     max-width: 100vw;
   }
 
-  /* Improved typography for headings - Arial Rounded MT Bold with Windows fallbacks */
+  /* Improved typography for headings - Univers with fallbacks */
   h1,
   h2,
   h3,
@@ -51,9 +54,9 @@
   h5,
   h6 {
     @apply font-bold;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
-      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+      "Univers", "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
     letter-spacing: -0.03em;
     line-height: 1.15;
   }
@@ -61,9 +64,9 @@
   /* Better readability for long texts */
   p {
     line-height: 1.75;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
-      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+      "Univers", "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
   }
 
   /* Superscript styling */
@@ -84,6 +87,12 @@
   input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
+  }
+
+  /* Radio and Checkbox accent color */
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: #20b24d;
   }
 }
 
@@ -213,9 +222,9 @@
            outline-none transition-all duration-500;
     font-size: 0.9375rem;
     font-weight: 500;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
-      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+      "Univers", "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
     background: rgba(255, 255, 255, 0.6) !important;
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -230,9 +239,9 @@
   .input-field::placeholder {
     color: rgb(156, 163, 175);
     font-weight: 400;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
-      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+      "Univers", "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
   }
 
   .input-field:focus {
@@ -262,9 +271,9 @@
            outline-none transition-all duration-500 appearance-none cursor-pointer;
     font-size: 18px;
     font-weight: 600;
-    /* Font stack with fallbacks: Arial Rounded MT Bold (Mac/iOS), then Arial, Tahoma, Verdana (Windows) */
+    /* Font stack with Univers as primary font */
     font-family:
-      "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
+      "Univers", "Arial Rounded MT Bold", Arial, Tahoma, Verdana, system-ui, sans-serif;
     background: rgba(255, 255, 255, 0.6) !important;
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);

@@ -4,6 +4,7 @@
  */
 
 import { useForm, Controller } from 'react-hook-form';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Input from '../UI/Input';
@@ -20,12 +21,14 @@ const StepVehicleCondition = ({
   userInfo,
   onSubmit,
   loading,
+  zipCodeError,
 }) => {
   const {
     register,
     handleSubmit,
     control,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -56,10 +59,21 @@ const StepVehicleCondition = ({
     watchHasAccident &&
     watchHasClearTitle &&
     watchOdometer &&
+    parseInt(watchOdometer?.toString().replace(/,/g, '') || '0') > 0 &&
     watchZipCode &&
     watchEmail;
 
   const isPhoneValid = watchPhone && getDigitsOnly(watchPhone).length === 10;
+
+  // Set ZIP code error when prop changes
+  useEffect(() => {
+    if (zipCodeError) {
+      setError('zipCode', {
+        type: 'manual',
+        message: zipCodeError,
+      });
+    }
+  }, [zipCodeError, setError]);
 
   return (
     <motion.div
@@ -120,17 +134,37 @@ const StepVehicleCondition = ({
               hint='Select "No" if Your Vehicle is Leased or Financed.'
             />
 
-            <Input
-              label="What Does the Odometer Read?"
-              type="number"
-              inputMode="numeric"
-              placeholder="Enter Vehicle Mileage"
-              error={errors.odometer?.message}
-              id="odometer-input"
-              {...register('odometer', {
+            <Controller
+              name="odometer"
+              control={control}
+              rules={{
                 required: 'Odometer reading is required',
-                min: { value: 0, message: 'Odometer must be positive' },
-              })}
+                validate: (value) => {
+                  const numValue = parseInt(value?.toString().replace(/,/g, '') || '0');
+                  if (numValue < 0) return 'Odometer must be positive';
+                  if (numValue === 0) return 'Odometer reading is required';
+                  return true;
+                },
+              }}
+              render={({ field, fieldState }) => (
+                <Input
+                  label="What Does the Odometer Read?"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter Vehicle Mileage"
+                  error={fieldState.error?.message}
+                  id="odometer-input"
+                  value={field.value || ''}
+                  onChange={(e) => {
+                    // Remove all non-numeric characters
+                    const numericValue = e.target.value.replace(/\D/g, '');
+                    // Format with commas
+                    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    field.onChange(formattedValue);
+                  }}
+                  onBlur={field.onBlur}
+                />
+              )}
             />
           </div>
 

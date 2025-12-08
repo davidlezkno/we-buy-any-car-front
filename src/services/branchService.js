@@ -1,17 +1,16 @@
 /**
- * Valuation Service - Handles vehicle valuation API calls
+ * Branch Service - Handles branch/location API calls
  * Implements Single Responsibility Principle (SRP)
+ * 
+ * SEGURIDAD: Usa httpClient con tokenManager integrado
  */
 
 import httpClient from './utils/httpClient';
 
 export const getBranches = async (zipCode, limit, type, retries = 3) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`/api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -22,11 +21,8 @@ export const getBranches = async (zipCode, limit, type, retries = 3) => {
 
 export const getBrancheById = async (idBranch, retries = 3) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`/api/content/branches/${idBranch}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/content/branches/${idBranch}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -37,12 +33,6 @@ export const getBrancheById = async (idBranch, retries = 3) => {
 
 export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-
-    
     // if(zipCode == "" || zipCode == null){
     //   zipCode = localStorage.getItem("zipCode");
     // }
@@ -51,11 +41,11 @@ export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId) =
       customerVehicleId = localStorage.getItem("customerVehicleId");
     }
 
-    const response = await httpClient.get(`/api/Appointment/availability/${zipCode}/${customerVehicleId}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/Appointment/availability/${zipCode}/${customerVehicleId}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
     return [];
-   
   }
 };
