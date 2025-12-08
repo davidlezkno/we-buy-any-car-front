@@ -404,7 +404,7 @@ const ValuationTabs = ({
               />
               <div className="mt-3 text-center">
                 <button
-                  onClick={onOpenVinHelp}
+                  onClick={() => onOpenVinHelp(vinValue)}
                   className="text-primary-600 hover:text-primary-700 underline text-sm md:text-base font-semibold"
                   id="where-can-i-find-vin-button"
                 >
@@ -488,23 +488,7 @@ const ValuationTabs = ({
         ),
       },
     ],
-    [
-      handleMakeModelClick,
-      handleVinValueSubmit,
-      makes,
-      models,
-      onOpenVinHelp,
-      onPlateSubmit,
-      plateState,
-      plateValue,
-      selectedMake,
-      selectedModel,
-      selectedYear,
-      vinError,
-      vinLoading,
-      vinValue,
-      years,
-    ],
+    [handleMakeModelClick, handlePlateSubmit, handleVinValueSubmit, loadModels, makes, models, onOpenVinHelp, plateState, plateValue, selectedMake, selectedModel, selectedYear, vinError, vinLoading, vinValue, years],
   );
 
   return (

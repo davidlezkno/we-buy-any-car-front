@@ -16,3 +16,11 @@ export { useVehicleSearch } from './domain/useVehicleSearch';
 export { useAppointmentBooking } from './domain/useAppointmentBooking';
 export { useValuation } from './domain/useValuation';
 
+// MakeModel Flow hooks
+export { useMakeModelFlow } from './domain/useMakeModelFlow';
+export { useCustomerJourney } from './domain/useCustomerJourney';
+export { useVehicleSeries } from './domain/useVehicleSeries';
+export { useBranches } from './domain/useBranches';
+export { useDamageForm } from './domain/useDamageForm';
+export { useFlowState } from './domain/useFlowState';
+

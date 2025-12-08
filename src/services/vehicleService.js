@@ -8,7 +8,6 @@ import httpClient from './utils/httpClient';
 import { getCookie, random10Digits } from '../utils/helpers';
 
 
-
 // External API endpoints
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
 
@@ -24,10 +23,6 @@ export const decodeVIN = async (vin, retries = 2) => {
     );
 
     const data = response.data.Results[0];
-
-    // if (data.ErrorCode !== '0') {
-    //   throw new Error('Invalid VIN number');
-    // }
 
     return {
       vin,
@@ -46,9 +41,7 @@ export const decodeVIN = async (vin, retries = 2) => {
   } catch (error) {
     console.error('VIN decode error:', error);
     if (retries === 0) {
-      throw new Error(
-        'Failed to decode VIN. Please check the number and try again.'
-      );
+      return null;
     }
     return decodeVIN(vin, retries - 1);
   }
@@ -79,22 +72,16 @@ export const decodeLicensePlate = async (plate, state, retries = 2) => {
   } catch (error) {
     console.error('License plate lookup error:', error);
     if (retries === 0) {
-      throw new Error(
-        'Failed to lookup license plate. Please verify the information.'
-      );
+      return null;
     }
     return decodeLicensePlate(plate, state, retries - 1);
   }
 };
 
 export const getVehicleMakes = async (year, retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/makes/${year.toString()}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token desde tokenManager
+    const response = await httpClient.get(`/api/Vehicles/makes/${year.toString()}`);
     return response.data.sort();
   } catch (error) {
     console.error('Get makes error:', error);
@@ -104,16 +91,11 @@ export const getVehicleMakes = async (year, retries = 2) => {
 };
 
 export const createVisitorID = async (retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
+    // SEGURIDAD: httpClient maneja automáticamente el token
     const response = await httpClient.post(
-      `http://localhost:5001/api/Attribution/visitor`, 
-      { oldVisitorId: random10Digits()}, 
-      { headers }
+      `/api/Attribution/visitor`, 
+      { oldVisitorId: random10Digits()}
     );
     return response.data;
   } catch (error) {
@@ -124,16 +106,11 @@ export const createVisitorID = async (retries = 2) => {
 };
 
 export const createCustomerJourney = async (year,make,model, visitId = 1, retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
+    // SEGURIDAD: httpClient maneja automáticamente el token
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey`, 
-      {year: year, make: make, model: model, visitId: visitId}, 
-      { headers }
+      `/api/customer-journey`, 
+      {year: year, make: make, model: model, visitId: visitId}
     );
     return response.data;
   } catch (error) {
@@ -145,42 +122,29 @@ export const createCustomerJourney = async (year,make,model, visitId = 1, retrie
 
 
 export const createCustomerJourneyByPlate = async (  visitId, plateNumber, plateState ) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-
     visitId = visitId|| getCookie("visitorId");
 
+    // SEGURIDAD: httpClient maneja automáticamente el token
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/plate`, 
-      {visitId: visitId, plateNumber: plateNumber, plateState: plateState}, 
-      { headers }
+      `/api/customer-journey/plate`, 
+      {visitId: visitId, plateNumber: plateNumber, plateState: plateState}
     );
     return response.data;
   } catch (error) {
     console.error('Create customer journey error:', error);
     return null;
-    
   }
 };
 
 export const createCustomerJourneyByVin = async ( vin = 1 , visitId ) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-
     visitId = visitId|| getCookie("visitorId");
 
+    // SEGURIDAD: httpClient maneja automáticamente el token
     const response = await httpClient.post(
-      `http://localhost:5001/api/customer-journey/vin`, 
-      {visitId: visitId, vin: vin}, 
-      { headers }
+      `/api/customer-journey/vin`, 
+      {visitId: visitId, vin: vin}
     );
     return response.data;
   } catch (error) {
@@ -191,14 +155,9 @@ export const createCustomerJourneyByVin = async ( vin = 1 , visitId ) => {
 
 
 export const CustomerDetailJourney = async (newData,customerJourneyId, retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData);
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -208,7 +167,6 @@ export const CustomerDetailJourney = async (newData,customerJourneyId, retries =
 };
 
 export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 2) => {
-  
   if(newData.email === ""){
     const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
 
@@ -220,12 +178,8 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
   }
 
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await httpClient.post(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData);
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -236,13 +190,9 @@ export const UpdateCustomerJourney = async (newData,customerJourneyId, retries =
 
 
 export const GetCustomerJourney = async (customerJourneyId, retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${customerJourneyId.toString()}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/customer-journey/${customerJourneyId.toString()}`);
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -254,13 +204,9 @@ export const GetCustomerJourney = async (customerJourneyId, retries = 2) => {
 
 
 export const GetCustomerJourneyByVisit = async (visitId, retries = 2) => {
-  
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`http://localhost:5001/api/customer-journey/${visitId.toString()}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/customer-journey/${visitId.toString()}`);
     return response.data;
   } catch (error) {
     console.error('Get makes error:', error);
@@ -276,12 +222,8 @@ export const GetCustomerJourneyByVisit = async (visitId, retries = 2) => {
  */
 export const getSeries = async (year,model,make, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`, 
-    { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`);
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
@@ -292,11 +234,8 @@ export const getSeries = async (year,model,make, retries = 2) => {
 
 export const getModelsByMake = async (year,make, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get(`http://localhost:5001/api/Vehicles/models/${year.toString()}/${make.toString()}`, { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get(`/api/Vehicles/models/${year.toString()}/${make.toString()}`);
     return response.data.sort();
   } catch (error) {
     console.error('Get models error:', error);
@@ -311,11 +250,8 @@ export const getModelsByMake = async (year,make, retries = 2) => {
  */
 export const getVehicleYears = async (retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    const response = await httpClient.get('http://localhost:5001/api/Vehicles/years', { headers });
+    // SEGURIDAD: httpClient maneja automáticamente el token
+    const response = await httpClient.get('/api/Vehicles/years');
     
     return response.data;
   } catch (error) {
@@ -328,24 +264,19 @@ export const getVehicleYears = async (retries = 2) => {
 
 export const getImageVehicle = async (externalUrl, retries = 2) => {
   try {
-    const token = sessionStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`
-    };
-    
-    const response = await fetch(
-      `http://localhost:5001/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
-      { headers }
+    // SEGURIDAD: Usar httpClient que maneja el token automáticamente
+    const response = await httpClient.get(
+      `/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
+      { responseType: 'blob' }
     );
 
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob); // URL para usar en <img>
+    const objectUrl = URL.createObjectURL(response.data);
     return objectUrl;
     
   } catch (error) {
-    console.error('Get years error:', error);
+    console.error('Get image error:', error);
     if (retries === 0) return [];
-    return getVehicleYears(retries - 1);
+    return getImageVehicle(externalUrl, retries - 1);
   }
 };
 
@@ -433,6 +364,25 @@ export const getFaultTypeList = async (componentId, retries = 2) => {
   }
 };
 
+/**
+ * Cancel appointment
+ * @param {string} customerVehicleId - Customer vehicle ID
+ * @param {string} phoneNumber - Phone number
+ * @returns {Promise<Object>} Response data
+ */
+export const cancelAppointment = async (customerVehicleId, phoneNumber, retries = 2) => {
+  try {
+    const response = await httpClient.delete(
+      `/api/Appointment/cancel/${customerVehicleId}/${phoneNumber}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Cancel appointment error:', error);
+    if (retries === 0) throw error;
+    return cancelAppointment(customerVehicleId, phoneNumber, retries - 1);
+  }
+};
+
 export const vehicleService = {
   decodeVIN,
   decodeLicensePlate,
@@ -446,5 +396,6 @@ export const vehicleService = {
   getComponentList,
   getFaultTypeList,
   getSeries,
+  cancelAppointment,
 };
 

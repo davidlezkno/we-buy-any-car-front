@@ -13,7 +13,7 @@ import ProgressBar from "../components/UI/ProgressBar";
 const VINFlow = () => {
   const navigate = useNavigate();
   const { updateVehicleData, vehicleData, updateUserInfo } = useApp();
-  // Si ya vienen datos decodificados del VIN desde HomePage, saltar al paso 2
+  // If VIN data is already decoded from HomePage, skip to step 2
   const hasDecodedVIN =
     vehicleData?.vin &&
     vehicleData?.make &&
@@ -65,14 +65,14 @@ const VINFlow = () => {
 
   return (
     <div className="section-container py-8 md:py-12 relative overflow-hidden">
-      {/* Efectos de fondo decorativos */}
+      {/* Decorative background effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-10 w-96 h-96 bg-primary-100/30 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary-200/20 rounded-full blur-[120px]"></div>
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10" ref={contentRef}>
-        {/* Header con glass */}
+        {/* Header with glass effect */}
         <motion.div
           className="mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -144,7 +144,7 @@ const VINFlow = () => {
                     onSubmit={handleSubmit(handleVINSubmit)}
                     className="space-y-7"
                   >
-                    {/* Si ya vienen datos decodificados del VIN desde HomePage, mostrar resumen */}
+                    {/* If VIN data is already decoded from HomePage, show summary */}
                     {hasDecodedVIN && !showEditForm ? (
                       <>
                         <div className="mb-6 p-5 rounded-2xl border-2 border-green-200 bg-green-50">
@@ -239,7 +239,7 @@ const VINFlow = () => {
                             type="button"
                             onClick={() => {
                               setShowEditForm(false);
-                              // Resetear el formulario al VIN original si existe
+                              // Reset form to original VIN if it exists
                               if (vehicleData?.vin) {
                                 setValue("vin", vehicleData.vin);
                               }

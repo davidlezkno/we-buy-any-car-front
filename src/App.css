@@ -1,3 +1,6 @@
+/* Import Univers Font */
+@import './styles/fonts.css';
+
 /* Additional app-specific styles */
 .page-transition-enter {
   opacity: 0;

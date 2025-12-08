@@ -109,25 +109,45 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
 
     setIsLoading(true);
     setError("");
+    
     try {
       if (onVerify) {
-        // Wait for onVerify to complete, but DO NOT close the modal automatically
-        onVerify(code);
-        // If onVerify completes without error, keep the modal open
-        // The modal will only close manually when the user requests it
+        // Call onVerify and wait for result
+        const result = await onVerify(code);
+        
+        // If verification was successful (result === true), close modal immediately
+        // Don't update any state - just close to avoid showing error message
+        if (result === true) {
+          onClose(); // Close modal on success - state will be reset by useEffect
+          return; // Exit immediately without updating any state
+        } else {
+          setTimeout(() => {
+            // Only reach here if verification failed
+            // Verification failed - show error and stay on modal
+            setIsLoading(false);
+            setError("Invalid code. Please try again.");
+            // Clear OTP inputs to allow retry
+            setOtp(["", "", "", "", "", ""]);
+            inputRefs.current[0]?.focus();
+          }, 5000)
+        }
+      } else {
         setIsLoading(false);
       }
     } catch (err) {
-      setError(err.message || "Invalid code. Please try again.");
+      // Error during verification - show error and stay on modal
       setIsLoading(false);
-      // DO NOT close the modal on error - allow the user to try again
+      setError(err.message || "Invalid code. Please try again.");
+      // Clear OTP inputs to allow retry
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     }
   };
 
   const handleResendCode = async () => {
     setShowResendMessage(false);
     if (onResendCode) {
-      await onResendCode();
+      onResendCode();
       setShowResendMessage(true);
       setTimeout(() => setShowResendMessage(false), 5000);
     }
@@ -182,6 +202,7 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
                   id="wrong-number"
                   href="#"
                   onClick={(e) => {
+                    setShowResendMessage(false);
                     e.preventDefault();
                     onChangePhone();
                   }}
